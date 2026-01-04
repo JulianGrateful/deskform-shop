@@ -311,27 +311,68 @@
         }
     }
 
-    async function fetchDatabase() {
+  async function fetchDatabase() {
         const response = await fetch(FILE_DB);
         if (!response.ok) throw new Error("База не найдена");
+        
         const arrayBuffer = await response.arrayBuffer();
         const wb = XLSX.read(arrayBuffer, {type:'array'});
         const ws = wb.Sheets[wb.SheetNames[0]];
         const json = XLSX.utils.sheet_to_json(ws, {header:1});
         
+        // 1. Ищем строку заголовков (где есть слово "Артикул")
         let head = -1; 
-        for(let i=0; i<50; i++) if(JSON.stringify(json[i]||[]).toLowerCase().includes('артикул')) { head=i; break; }
-        if(head === -1) throw new Error("Неверный формат базы");
+        for(let i=0; i<50; i++) {
+            if(JSON.stringify(json[i]||[]).toLowerCase().includes('артикул')) { head=i; break; }
+        }
+        if(head === -1) throw new Error("Неверный формат базы (нет заголовка 'Артикул')");
+
+        // 2. АВТО-ПОИСК КОЛОНОК (SMART MAPPING)
+        // По умолчанию ставим как было (на всякий случай)
+        let colArt = 0; // A
+        let colBrand = 1; // B
+        let colName = 2; // C
+        let colRetail = 4; // E
+        let colDealer = 5; // F
+        let colPromo = 6; // G
+        let colPack = 9; // J
+        
+        // Пробегаем по заголовкам и ищем ключевые слова
+        const headers = json[head].map(h => String(h || '').toLowerCase());
+        
+        headers.forEach((h, idx) => {
+            if (h.includes('артикул')) colArt = idx;
+            else if (h.includes('бренд') || h.includes('brand')) colBrand = idx;
+            else if (h.includes('наименование') || h.includes('товар')) colName = idx;
+            else if (h.includes('ташкент') || h.includes('розн') || h.includes('ррц')) colRetail = idx;
+            else if (h.includes('дилер') || h.includes('партнер') || h.includes('опт')) colDealer = idx;
+            else if (h.includes('акция') || h.includes('коммент')) colPromo = idx;
+            else if (h.includes('упак') || h.includes('влож') || h.includes('кор')) colPack = idx;
+        });
+
+        console.log(`Mapping: Art=${colArt}, Retail=${colRetail}, Dealer=${colDealer}, Pack=${colPack}`);
 
         const db = [];
         for(let i=head+1; i<json.length; i++) {
             const r = json[i];
-            if(r && r[0]) {
+            if(r && r[colArt]) {
                 const clean = v => parseFloat((v||0).toString().replace(/\s/g,'').replace(',','.')) || 0;
-                const art = r[0].toString().trim();
+                
+                const art = r[colArt].toString().trim();
                 const ref = categoriesRef[art] || {c1: 'Другое', c2: '', s: ''};
-                // Cols: 0:Art, 1:Brand, 2:Name, 4:Retail, 5:Dealer, 6:Promo, 8:Spec, 9:Pack
-                db.push({ id: art, br:r[1], nm:r[2], pp:clean(r[4]), pd:clean(r[5]), ps:clean(r[8]), pr:r[6], pk:r[9], c1: ref.c1, c2: ref.c2, sub: ref.s });
+                
+                // Используем найденные номера колонок
+                db.push({ 
+                    id: art, 
+                    br: r[colBrand], 
+                    nm: r[colName], 
+                    pp: clean(r[colRetail]), 
+                    pd: clean(r[colDealer]), 
+                    ps: 0, // Спеццену пока отключаем, чтобы не путала
+                    pr: r[colPromo], 
+                    pk: r[colPack], 
+                    c1: ref.c1, c2: ref.c2, sub: ref.s 
+                });
             }
         }
         
@@ -644,4 +685,5 @@
 </script>
 </body>
 </html>
+
 

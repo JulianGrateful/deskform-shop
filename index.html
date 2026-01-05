@@ -3,477 +3,858 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>Deskform App | Fix Categories</title>
+    <title>Deskform App | v3.5 Logic</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <style>
-        :root { --primary: #007aff; --bg: #f2f2f7; --card-bg: #ffffff; --text-main: #111827; }
-        body { font-family: sans-serif; background: var(--bg); padding-bottom: 160px; -webkit-tap-highlight-color: transparent; }
-        
-        /* HEADER */
-        .header-wrapper { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: rgba(255,255,255,0.98); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(0,0,0,0.05); transition: transform 0.3s; }
-        .header-wrapper.hidden { transform: translateY(-100%); }
-        .cat-scroll-container { display: flex; flex-direction: column; gap: 8px; padding-bottom: 8px; }
-        .scroll-row { overflow-x: auto; white-space: nowrap; padding: 0 4px; display: flex; gap: 8px; scrollbar-width: none; }
-        .scroll-row::-webkit-scrollbar { display: none; }
-        
-        /* PILLS */
-        .pill-mode { padding: 8px 16px; background: #fff; border-radius: 20px; font-weight: 800; border: 1px solid rgba(0,0,0,0.1); cursor: pointer; display: flex; align-items: center; }
-        .pill-mode.active { background: #111827; color: white; border-color: #111827; }
-        .pill-l1 { padding: 6px 14px; background: #fff; border-radius: 18px; font-size: 0.9rem; font-weight: 700; border: 1px solid rgba(0,0,0,0.1); cursor: pointer; }
-        .pill-l1.active { background: var(--primary); color: white; border-color: var(--primary); }
-        .pill-l2 { padding: 5px 12px; background: #E0F2FE; color: #0369A1; border-radius: 14px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
-        .pill-l2.active { background: #0284C7; color: white; }
-        .pill-l3 { padding: 4px 10px; background: #F3F4F6; color: #6B7280; border-radius: 12px; font-size: 0.8rem; font-weight: 500; cursor: pointer; }
-        .pill-l3.active { background: #10B981; color: white; }
+        :root { 
+            --primary: #007aff; 
+            --bg: #f2f2f7; 
+            --card-bg: #ffffff;
+            --text-main: #111827;
+            --text-sec: #6B7280;
+            --retail: #9CA3AF;
+            --accent-green: #10B981;
+            --accent-red: #EF4444;
+            --header-blur: rgba(255, 255, 255, 0.98);
+        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text-main); padding-bottom: 160px; -webkit-tap-highlight-color: transparent; }
 
-        .search-container { padding: 10px 16px; }
-        .search-input-group { border-radius: 12px; background: #fff; border: 1px solid rgba(0,0,0,0.05); overflow: hidden; }
-        .container-main { padding-top: 240px; }
+        /* HEADER */
+        .header-wrapper { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: var(--header-blur); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(0,0,0,0.05); transition: transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1); will-change: transform; }
+        .header-wrapper.hidden { transform: translateY(-100%); }
+        .navbar { padding: 8px 0; }
+        .navbar-brand { font-weight: 800; color: var(--text-main) !important; font-size: 1.1rem; line-height: 1; cursor: pointer; }
+        .brand-chip { background: rgba(255, 204, 0, 0.15); color: #9A7B0C; border: 1px solid rgba(255, 204, 0, 0.2); font-size: 0.65rem; padding: 2px 8px; border-radius: 6px; font-weight: 700; align-self: flex-start; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+        /* SCROLLS */
+        .cat-scroll-container { display: flex; flex-direction: column; gap: 8px; padding-bottom: 8px; }
+        .scroll-row { overflow-x: auto; white-space: nowrap; padding: 0 4px; -ms-overflow-style: none; scrollbar-width: none; display: flex; gap: 8px; cursor: grab; opacity: 0; transform: translateY(-10px); height: 0; pointer-events: none; margin-bottom: 0; transition: all 0.25s ease-out; user-select: none; }
+        .scroll-row:active { cursor: grabbing; }
+        .scroll-row::-webkit-scrollbar { display: none; }
+        #rowMode { opacity: 1; transform: translateY(0); height: auto; pointer-events: auto; }
+        .scroll-row.visible { opacity: 1; transform: translateY(0); height: auto; pointer-events: auto; }
+        .cnt { font-size: 0.75em; opacity: 0.6; margin-left: 4px; font-weight: 400; }
+        .active .cnt { opacity: 0.9; color: white; }
+
+        /* CHIPS */
+        .pill-mode { padding: 10px 20px; background: #fff; color: var(--text-main); border-radius: 24px; font-size: 1rem; font-weight: 800; border: 1px solid rgba(0,0,0,0.1); box-shadow: 0 4px 10px rgba(0,0,0,0.04); transition: all 0.2s; cursor: pointer; display: flex; align-items: center; }
+        .pill-mode.active { background: #111827; color: white; border-color: #111827; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .pill-l1 { padding: 8px 16px; background: #fff; color: var(--text-main); border-radius: 20px; font-size: 0.9rem; font-weight: 700; border: 1px solid rgba(0,0,0,0.08); box-shadow: 0 2px 6px rgba(0,0,0,0.03); transition: all 0.2s; cursor: pointer; display: flex; align-items: center; }
+        .pill-l1.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 10px rgba(0,122,255,0.3); }
+        .pill-l2 { padding: 6px 14px; background: #E0F2FE; color: #0369A1; border-radius: 16px; font-size: 0.85rem; font-weight: 600; border: 1px solid transparent; transition: all 0.2s; cursor: pointer; display: flex; align-items: center; }
+        .pill-l2.active { background: #0284C7; color: white; box-shadow: 0 2px 8px rgba(2, 132, 199, 0.3); }
+        .pill-l3 { padding: 5px 12px; background: #F3F4F6; color: var(--text-sec); border-radius: 12px; font-size: 0.75rem; font-weight: 500; border: 1px solid rgba(0,0,0,0.05); transition: all 0.2s; cursor: pointer; display: flex; align-items: center; }
+        .pill-l3.active { background: var(--accent-green); color: white; border-color: var(--accent-green); }
+
+        .search-input-group { border-radius: 12px; background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.05); }
+        .search-input-group input { border: none; font-size: 16px; padding: 12px; }
+        .container-main { padding-top: 260px; transition: padding-top 0.3s ease-out; }
 
         /* CARDS */
-        .product-card { background: #fff; border-radius: 16px; overflow: hidden; height: 100%; position: relative; cursor: pointer; }
-        .img-wrapper { height: 160px; padding: 10px; display: flex; justify-content: center; align-items: center; position: relative; }
+        .product-card { background: var(--card-bg); border: none; border-radius: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); height: 100%; display: flex; flex-direction: column; overflow: hidden; cursor: pointer; position: relative; transition: transform 0.1s; }
+        .product-card:active { transform: scale(0.98); }
+        .img-wrapper { height: 190px; padding: 20px; display: flex; align-items: center; justify-content: center; background: white; position: relative; }
         .img-wrapper img { max-height: 100%; max-width: 100%; object-fit: contain; }
-        .chip-brand { position: absolute; top: 8px; left: 8px; background: #F3F4F6; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; }
-        .cart-indicator { position: absolute; bottom: 8px; right: 8px; background: var(--primary); color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; justify-content: center; align-items: center; font-size: 11px; font-weight: 700; }
-        .card-info { padding: 10px; }
-        .card-title { font-size: 0.85rem; font-weight: 500; height: 2.4em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; margin-bottom: 4px; }
-        .price-curr { font-size: 1rem; font-weight: 800; }
-        
-        /* FOOTER */
-        .bottom-panel { position: fixed; bottom: 0; left: 0; width: 100%; background: #fff; border-top: 1px solid rgba(0,0,0,0.1); z-index: 990; padding-bottom: env(safe-area-inset-bottom); }
+        .chip-brand { position: absolute; top: 10px; left: 10px; background: #F3F4F6; color: var(--text-main); padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; z-index: 9; }
+        .chip-pack { position: absolute; top: 10px; right: 10px; background: #F3F4F6; color: var(--text-sec); padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 600; z-index: 9; }
+        .cart-indicator { position: absolute; bottom: 10px; right: 10px; background: var(--primary); color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; box-shadow: 0 2px 8px rgba(0,122,255,0.4); z-index: 20; }
+        .card-info { padding: 14px; display: flex; flex-direction: column; flex-grow: 1; }
+        .card-title-text { font-size: 0.95rem; font-weight: 500; line-height: 1.3; margin-bottom: 4px; height: 2.6em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+        .price-row { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; }
+        .price-col { display: flex; flex-direction: column; }
+        .price-retail-label { font-size: 0.7rem; color: var(--retail); display: block; margin-bottom: 2px; }
+        .price-curr { font-size: 1.15rem; font-weight: 700; color: var(--text-main); letter-spacing: -0.5px; line-height: 1; }
+        .badge-promo { background: var(--accent-red); color: white; padding: 4px 8px; border-radius: 8px; font-size: 10px; font-weight: 700; white-space: nowrap; margin-left: 8px; margin-bottom: 2px; }
+        .badge-green { background-color: var(--accent-green) !important; }
+
+        /* FOOTER & MODALS */
+        .bottom-panel { position: fixed; bottom: 0; left: 0; width: 100%; background: #fff; border-top: 1px solid rgba(0,0,0,0.08); z-index: 990; padding-bottom: env(safe-area-inset-bottom); transition: transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1); will-change: transform; box-shadow: 0 -5px 20px rgba(0,0,0,0.05); overflow: hidden; }
         .bottom-panel.hidden { transform: translateY(100%); }
-        .footer-grid { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 10px 16px 15px; }
-        .btn-order { background: rgba(0,122,255,0.1); color: var(--primary); border: 1px solid rgba(0,122,255,0.2); border-radius: 12px; padding: 8px 16px; font-weight: 700; }
-        
-        /* LOGISTICS UI */
-        .delivery-option { display: flex; justify-content: space-between; align-items: center; padding: 12px; border: 1px solid #e5e5ea; border-radius: 12px; margin-bottom: 8px; cursor: pointer; }
-        .delivery-option.selected { border-color: var(--primary); background: rgba(0,122,255,0.05); }
-        
+        .footer-fill-bg { position: absolute; top: 0; left: 0; bottom: 0; background: rgba(16, 185, 129, 0.15); z-index: 0; width: 0%; transition: width 0.6s cubic-bezier(0.25, 1, 0.5, 1); border-right: 1px solid rgba(16, 185, 129, 0.3); }
+        .footer-grid { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 10px 16px 15px 16px; }
+        .footer-center { display: flex; flex-direction: column; align-items: center; text-align: center; }
+        .f-game-text { font-size: 0.7rem; font-weight: 600; color: var(--primary); margin-bottom: 2px; white-space: nowrap; }
+        .f-label-main { font-size: 0.7rem; color: var(--text-sec); line-height: 1.2; }
+        .f-val-main { font-size: 1rem; font-weight: 800; color: var(--text-main); }
+        .f-benefit { font-size: 0.8rem; color: var(--accent-green); font-weight: 700; margin-top: 2px; }
+        .btn-order { background: rgba(0, 122, 255, 0.1); color: var(--primary); border: 1px solid rgba(0, 122, 255, 0.2); border-radius: 14px; padding: 10px 20px; font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; justify-self: end; backdrop-filter: blur(5px); transition: all 0.2s; }
+        .cart-count-badge { background: var(--primary); color: white; padding: 2px 6px; border-radius: 6px; font-size: 0.75rem; }
+        .level-up-toast { position: fixed; top: 180px; left: 50%; transform: translateX(-50%) translateY(-20px); background: #10B981; color: white; padding: 10px 20px; border-radius: 50px; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4); font-weight: 700; font-size: 0.9rem; z-index: 2000; opacity: 0; pointer-events: none; transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; align-items: center; gap: 8px; }
+        .level-up-toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        /* Modal tweaks */
+        .modal-content { border-radius: 24px; border: none; }
+        .modal-product-img { height: 240px; display: flex; align-items: center; justify-content: center; background: #fff; margin-bottom: 15px; border-radius: 16px; padding: 10px; }
+        .modal-product-img img { max-height: 100%; max-width: 100%; object-fit: contain; }
+        .quantity-control { background: #fff; border: 1px solid rgba(0,0,0,0.05); border-radius: 16px; padding: 20px; margin-top: 15px; position: relative; }
+        .mode-switch .btn { border: none; border-radius: 12px; color: var(--text-sec); font-weight: 500; padding: 6px 16px; }
+        .mode-switch .btn-check:checked + .btn { background-color: #F3F4F6; color: var(--text-main); font-weight: 700; }
+        .big-input { border: 1px solid transparent; background: transparent; font-size: 2rem; font-weight: 700; text-align: center; height: 60px; color: var(--text-main); border-radius: 12px; }
+        .big-input:focus { background: #f2f2f7; outline: none; }
+        .btn-qty { border: 1px solid #e5e5ea; border-radius: 12px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.5rem; background: white; }
+
+        .cart-item { background: white; border-radius: 16px; padding: 12px; margin-bottom: 10px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .cart-item-head { display: flex; align-items: flex-start; margin-bottom: 12px; }
+        .cart-index { color: var(--text-sec); font-size: 0.8rem; margin-right: 6px; font-weight: 700; margin-top: 2px; }
+        .cart-item-title { font-weight: 600; font-size: 0.95rem; line-height: 1.3; color: var(--text-main); white-space: normal; }
+        .cart-item-body { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+        .qty-wrapper { display: flex; align-items: center; }
+        .qty-label { font-size: 0.75rem; color: var(--text-sec); margin-right: 8px; font-weight: 500; }
+        .cart-controls { display: flex; align-items: center; background: #F3F4F6; border-radius: 10px; padding: 2px; }
+        .ctrl-btn { width: 32px; height: 32px; border: none; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .ctrl-val { width: 36px; text-align: center; font-weight: 700; font-size: 0.95rem; }
+        .price-per-unit { font-size: 0.75rem; color: var(--text-sec); margin-left: 8px; }
+        .cart-item-total { margin-left: auto; text-align: right; }
+        .total-price-val { font-weight: 800; font-size: 1.1rem; color: var(--text-main); }
+        .del-btn { width: 32px; height: 32px; border: none; background: #FEF2F2; color: var(--accent-red); border-radius: 8px; margin-left: 10px; display: flex; align-items: center; justify-content: center; }
+
+        .funnel-container { margin-top: 20px; background: #fff; border-radius: 16px; padding: 15px; border: 1px solid rgba(0,0,0,0.05); }
+        .funnel-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; margin-bottom: 6px; border-radius: 10px; font-size: 12px; }
+        .f-step-1 { background: var(--funnel-1); width: 100%; }
+        .f-chip { font-weight: 700; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-right: 6px; }
+        .f-chip.green { background-color: rgba(16, 185, 129, 0.1); color: #10B981; }
+        .f-chip.gray { background-color: #F3F4F6; color: #6B7280; }
+        .final-block { margin-top: 15px; text-align: center; border-top: 1px dashed #e5e5ea; padding-top: 15px; }
+        .final-price { font-size: 24px; font-weight: 800; color: var(--accent-green); }
+
         /* Loader */
         #loaderOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: center; }
+
+        /* Calc Styles */
+        .calc-bar-bg { width: 100%; height: 8px; background: #e5e5ea; border-radius: 4px; margin-top: 4px; overflow: hidden; }
+        .calc-bar-fill { height: 100%; transition: width 0.4s ease; border-radius: 4px; }
+        .ios-slider { -webkit-appearance: none; width: 100%; height: 6px; background: #e5e5ea; border-radius: 3px; }
+        .ios-slider::-webkit-slider-thumb { -webkit-appearance: none; height: 28px; width: 28px; border-radius: 50%; background: #ffffff; box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
     </style>
 </head>
 <body>
 
-<div id="loaderOverlay"><div class="spinner-border text-primary mb-3"></div><div>Загрузка базы...</div></div>
+<div id="loaderOverlay">
+    <div class="spinner-border text-primary mb-3"></div>
+    <div class="fw-bold text-secondary">Загрузка...</div>
+</div>
+
+<div id="toastContainer"></div>
 
 <div class="header-wrapper" id="mainHeader">
-    <div class="container pt-2 pb-2">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-            <div class="fw-bold">Deskform Dealer</div>
-            <div class="d-flex gap-2">
-                <span class="badge bg-warning text-dark" id="userStatusChip">...</span>
-                <button class="btn btn-sm btn-light rounded-pill" onclick="resetFilters()">Сброс</button>
+    <div class="container">
+        <nav class="navbar d-flex align-items-center justify-content-between">
+            <div class="brand-col">
+                <span class="navbar-brand">Deskform Dealer</span>
+                <span class="brand-chip" id="userStatusChip">Статус: Загрузка...</span>
             </div>
-        </div>
-        <div class="input-group mb-2 search-input-group">
-            <span class="input-group-text border-0 bg-white"><i class="bi bi-search"></i></span>
-            <input type="text" id="searchInput" class="form-control border-0 shadow-none" placeholder="Поиск...">
-        </div>
-        <div class="cat-scroll-container">
-            <div id="rowMode" class="scroll-row"></div>
-            <div id="rowL2" class="scroll-row"></div>
-            <div id="rowL3" class="scroll-row"></div>
-            <div id="rowL4" class="scroll-row"></div>
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-sm btn-primary rounded-pill px-3" id="btnCalc" onclick="openCalculator()">
+                    <i class="bi bi-calculator"></i>
+                </button>
+                <button class="btn btn-sm btn-light rounded-pill px-3" onclick="resetFilters()">Сброс</button>
+            </div>
+        </nav>
+
+        <div class="search-container-inner">
+            <div class="row g-2">
+                <div class="col-12">
+                    <div class="input-group search-input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" id="searchInput" class="form-control" placeholder="Поиск товаров...">
+                    </div>
+                </div>
+                <div class="col-12">
+                     <div class="cat-scroll-container">
+                         <div id="rowMode" class="scroll-row"></div>
+                         <div id="rowL2" class="scroll-row"></div>
+                         <div id="rowL3" class="scroll-row"></div>
+                         <div id="rowL4" class="scroll-row"></div>
+                     </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 <div class="container container-main">
-    <div id="productsGrid" class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-2"></div>
-    <div id="scrollSentinel" class="text-center py-5 opacity-0">.</div>
-    <div id="emptyState" class="text-center py-5 d-none">Пусто</div>
+    <div id="productsGrid" class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3"></div>
+    <div id="scrollSentinel" class="text-center py-4 opacity-0"><div class="spinner-grow spinner-grow-sm text-secondary"></div></div>
+
+    <div id="emptyState" class="text-center py-5 d-none">
+        <i class="bi bi-search display-1 text-muted opacity-25"></i>
+        <p class="mt-2 text-muted">Ничего не найдено</p>
+    </div>
+    <div id="noDbState" class="text-center py-5 d-none">
+        <h4 class="mt-3">База пуста</h4>
+        <p class="text-muted small">Не удалось загрузить файлы. Проверьте их имена на GitHub.</p>
+    </div>
 </div>
 
 <div class="bottom-panel" id="mainFooter">
+    <div class="footer-fill-bg" id="footerFill"></div>
     <div class="footer-grid">
-        <div></div>
-        <div class="text-center">
-            <div style="font-size:0.7rem;color:#6B7280">Сумма: <span class="fw-bold text-dark" id="footerBaseSum">0</span></div>
-            <div style="font-size:0.8rem;color:#10B981;font-weight:700">Выгода: <span id="footerBenefit">0</span></div>
+        <div></div> 
+        <div class="footer-center">
+            <div class="f-game-text" id="footerGameText">Загрузка...</div>
+            <div><span class="f-label-main">Товаров на:</span> <span class="f-val-main" id="footerBaseSum">0</span></div>
+            <div class="f-benefit">Выгода: <span id="footerBenefit">0</span></div>
         </div>
-        <button class="btn-order" data-bs-toggle="modal" data-bs-target="#cartModal">Корзина <span id="cartCountBadge" class="badge bg-primary ms-1" style="display:none">0</span></button>
+        <button class="btn-order" data-bs-toggle="modal" data-bs-target="#cartModal">
+            Заказ <span class="cart-count-badge" id="cartCountBadge" style="display:none">0</span>
+        </button>
     </div>
 </div>
 
-<div class="modal fade" id="productModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-body p-4"><button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button><div class="img-wrapper mb-3"><img id="modalImg" src=""></div><h5 id="modalTitle" class="fw-bold mb-1"></h5><div class="text-muted small mb-3">Артикул: <span id="modalArt" class="fw-bold text-dark"></span></div><div class="d-flex justify-content-between mb-2"><span class="text-muted small">Розница:</span><span class="text-decoration-line-through text-muted" id="modalRetailPrice"></span></div><div class="d-flex justify-content-between mb-3"><span class="fw-bold">Опт:</span><span class="fs-4 fw-bold text-primary" id="modalDealerPrice"></span></div><div class="bg-light p-3 rounded-3"><div class="d-flex justify-content-center mb-3"><div class="btn-group w-100"><input type="radio" class="btn-check" name="qtyMode" id="modeUnit" onchange="updateCalc()" checked><label class="btn btn-outline-secondary" for="modeUnit">Шт.</label><input type="radio" class="btn-check" name="qtyMode" id="modeBox" onchange="updateCalc()"><label class="btn btn-outline-secondary" for="modeBox">Кор. <span id="boxLabel"></span></label></div></div><div class="d-flex align-items-center justify-content-between"><button class="btn btn-white border" onclick="adjustQty(-1)" style="width:40px;height:40px">-</button><input type="number" id="qtyInput" class="form-control text-center mx-2 border-0 bg-transparent fs-2 fw-bold" value="0" oninput="updateCalc()"><button class="btn btn-white border" onclick="adjustQty(1)" style="width:40px;height:40px">+</button></div><div class="text-center mt-2 small text-muted">Итого: <span id="calcTotalPrice" class="fw-bold text-dark">0</span></div></div><button class="btn btn-primary w-100 mt-3 py-3 rounded-3 fw-bold" onclick="confirmAddToCart()">Добавить</button></div></div></div></div>
+<div class="modal fade" id="productModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-body p-4"><button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button><div class="modal-product-img"><img id="modalImg" src="" alt="" data-id=""></div><h5 class="fw-bold mb-1" id="modalTitle">Название</h5><div class="text-muted small mb-3">Артикул: <span id="modalArt" class="fw-bold text-dark"></span></div><div class="d-flex justify-content-between align-items-center mb-1"><span class="text-muted small">Цена в Ташкенте:</span><span class="text-decoration-line-through text-muted" id="modalRetailPrice">0 сум</span></div><div class="d-flex justify-content-between align-items-center mb-2"><span class="fw-bold">Ваша цена:</span><span class="fs-3 fw-bold" style="color:var(--primary)" id="modalDealerPrice">0 сум</span></div><div class="quantity-control"><div class="d-flex justify-content-center mb-3 mt-2"><div class="btn-group mode-switch" role="group"><input type="radio" class="btn-check" name="qtyMode" id="modeUnit" onchange="updateCalc()"><label class="btn" for="modeUnit">Штуки</label><input type="radio" class="btn-check" name="qtyMode" id="modeBox" onchange="updateCalc()"><label class="btn" for="modeBox">Коробка <span id="boxLabel" class="badge bg-secondary ms-1" style="font-weight:400"></span></label></div></div><div class="d-flex align-items-center justify-content-between mt-3"><div class="btn-qty" onclick="adjustQty(-1)"><i class="bi bi-dash"></i></div><input type="number" id="qtyInput" class="big-input mx-2" style="width: 100px" value="0" min="0" oninput="updateCalc()" onfocus="this.select()"><div class="btn-qty" onclick="adjustQty(1)"><i class="bi bi-plus"></i></div></div><div class="text-center text-muted small mt-2">Сумма: <span id="calcTotalPrice" class="fw-bold text-dark">0</span> сум</div></div><button class="btn btn-primary w-100 py-3 mt-3 rounded-4 fw-bold fs-6" onclick="confirmAddToCart()">Добавить в заказ</button></div></div></div></div>
 
 <div class="modal fade" id="cartModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-        <div class="modal-content bg-light">
-            <div class="modal-header border-0 pb-0"><h5 class="fw-bold ms-2">Корзина</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-            <div class="modal-body p-3">
+        <div class="modal-content" style="background: #f9fafb;">
+            <div class="modal-header border-0"><h5 class="modal-title fw-bold ms-2">Ваш заказ</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body p-3 pt-0">
                 <div id="cartItemsList"></div>
-                <div id="cartEmptyMsg" class="text-center py-5 text-muted">Пусто</div>
+                <div id="cartEmptyMsg" class="text-center py-5 text-muted">Корзина пуста</div>
                 
-                <div id="logisticsBlock" class="d-none mt-3">
-                    <h6 class="fw-bold mb-2 ps-1">Доставка</h6>
-                    <div class="delivery-option selected" id="optStandard" onclick="selectDelivery('standard')">
-                        <div><div class="fw-bold">Стандарт (Фура)</div><div class="small text-muted">Консолидация</div></div>
-                        <i class="bi bi-check-circle-fill text-primary fs-5"></i>
+                <div class="p-3 mb-3 bg-white rounded-4 border">
+                    <div class="form-check form-switch d-flex align-items-center justify-content-between ps-0 mb-0">
+                        <label class="form-check-label fw-bold" for="deliveryTypeSwitch">📦 Дропшиппинг</label>
+                        <input class="form-check-input ms-auto" type="checkbox" id="deliveryTypeSwitch" style="width: 40px; height: 20px;" onchange="toggleDropshipFields()">
                     </div>
-                    <div class="delivery-option" id="optExpress" onclick="selectDelivery('express')">
-                        <div><div class="fw-bold">Экспресс (Пятак)</div><div class="small text-muted">Оплата такси при получении</div></div>
-                        <i class="bi bi-circle text-muted fs-5"></i>
-                    </div>
-                    <div class="bg-white p-3 rounded-3 border mt-2">
-                        <div class="form-check form-switch d-flex justify-content-between ps-0 mb-0">
-                            <label class="form-check-label fw-bold" for="switchDropship">📦 Дропшиппинг</label>
-                            <input class="form-check-input ms-auto" type="checkbox" id="switchDropship" onchange="toggleDropshipFields()">
-                        </div>
-                        <div id="dropshipFields" class="mt-3 d-none border-top pt-2">
-                            <input type="text" id="dsName" class="form-control mb-2" placeholder="ФИО Клиента">
-                            <input type="tel" id="dsPhone" class="form-control mb-2" placeholder="Телефон">
-                            <textarea id="dsAddress" class="form-control" rows="2" placeholder="Адрес"></textarea>
-                        </div>
+                    <div id="dropshipFields" class="mt-3 d-none border-top pt-3">
+                        <p class="small text-muted mb-2">Данные вашего клиента:</p>
+                        <input type="text" id="dsName" class="form-control mb-2 form-control-sm" placeholder="ФИО Получателя">
+                        <input type="tel" id="dsPhone" class="form-control mb-2 form-control-sm" placeholder="Телефон (+998...)">
+                        <textarea id="dsAddress" class="form-control form-control-sm" rows="2" placeholder="Адрес доставки"></textarea>
                     </div>
                 </div>
 
-                <div id="cartFunnel" class="mt-3 bg-white p-3 rounded-3 border d-none">
-                    <div class="d-flex justify-content-between small"><span>Товары:</span><span id="funnelBase">0</span></div>
-                    <div class="d-flex justify-content-between small text-success"><span>Скидка:</span><span id="funnelDiscount">0</span></div>
-                    <div class="d-flex justify-content-between align-items-center mt-2 border-top pt-2">
-                        <span class="small fw-bold">Предоплата (-2%)</span>
-                        <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="cartPrepayCheck" onchange="updateCartFunnel()"></div>
+                <div id="cartFunnel" class="funnel-container d-none">
+                    <div class="text-center fw-bold mb-3 small text-uppercase text-muted">Расчет стоимости</div>
+                    <div class="funnel-row f-step-1"><span class="f-label">Розничная цена</span><span class="f-val" id="funnelRetail">0</span></div>
+                    <div class="funnel-row f-step-2"><span class="f-label">Базовая цена дилера</span><div><span class="f-chip green">-15%</span><span class="f-val" id="funnelBase">0</span></div></div>
+                    
+                    <div class="funnel-row f-step-3" id="funnelRowVolume">
+                        <span class="f-label">Объем закупа <span id="volLabel" class="text-muted small fw-normal"></span></span>
+                        <div><span class="f-chip gray" id="chipVolPct">0%</span><span class="f-val" id="funnelVol">0</span></div>
                     </div>
-                    <div class="text-center mt-3"><div class="small text-muted">Итого</div><div class="fs-2 fw-bold text-primary" id="funnelFinal">0</div></div>
-                </div>
-            </div>
-            <div class="modal-footer justify-content-center bg-white border-0"><button class="btn btn-primary w-100 py-3 rounded-3 fw-bold" onclick="submitOrder()">Оформить</button></div>
-        </div>
-    </div>
-</div>
+                    
+                    <div class="funnel-row f-step-4"><span class="f-label">Условия оплаты</span><div><div class="d-flex justify-content-end mb-1"><div class="form-check form-switch me-2"><input class="form-check-input" type="checkbox" id="cartPromoCheck" onchange="updateCartFunnel()"><label class="form-check-label small" for="cartPromoCheck">Акция</label></div><div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="cartPrepayCheck" onchange="updateCartFunnel()"><label class="form-check-label small" for="cartPrepayCheck">Предопл.</label></div></div><div class="text-end"><span class="f-chip gray" id="chipPayPct">0%</span></div></div></div><div class="final-block"><span class="text-muted small">Окончательная цена</span><div class="final-price" id="funnelFinal">0 сум</div></div></div></div><div class="modal-footer justify-content-center bg-white border-top-0 rounded-bottom-4"><button class="btn btn-primary rounded-pill px-5 py-3 fw-bold w-100" onclick="submitOrder()"><i class="bi bi-check-circle-fill me-2"></i>Оформить заказ</button></div></div></div></div>
+<div class="modal fade" id="calcModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-body px-4 pb-4 pt-4"><button type="button" class="btn-close position-absolute end-0 top-0 m-3" data-bs-dismiss="modal"></button><div class="mb-4"><label class="text-muted small text-uppercase fw-bold mb-2">Сумма закупа</label><div class="fw-bold fs-1 text-center mb-1" id="calcAmountDisplay">50 млн</div><input type="range" class="ios-slider" id="calcAmountSlider" min="5" max="200" step="1" value="50"><div class="d-flex justify-content-between text-muted" style="font-size: 0.7rem;"><span>5 млн</span><span>200+ млн</span></div></div><div class="bg-light p-3 rounded-4 d-flex justify-content-between align-items-center mb-4"><div><div class="fw-bold">Предоплата</div><div class="text-muted small">Бонус +2% к скидке</div></div><div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="calcPrepayCheck" checked style="width: 50px; height: 26px;"></div></div><div class="bg-light p-3 rounded-4"><div class="text-center mb-3"><small class="text-muted text-uppercase fw-bold">Ваша экономия</small><div class="fw-bold fs-1 text-success" id="calcTotalBenefit">0</div><div class="text-muted small" id="calcTotalPercent">скидка 0%</div></div><div class="row g-2"><div class="col-12"><div class="d-flex justify-content-between small mb-1"><span>Скидка от объема</span> <span id="calcBaseLabel">0%</span></div><div class="calc-bar-bg"><div id="calcBaseBar" class="calc-bar-fill" style="background-color: var(--primary); width:0%"></div></div></div><div class="col-12 mt-3"><div class="d-flex justify-content-between small mb-1"><span>Акция</span> <span>+4%</span></div><div class="calc-bar-bg"><div class="calc-bar-fill" style="background-color: var(--accent-purple); width:100%"></div></div></div><div class="col-12 mt-3" id="calcPrepayRow"><div class="d-flex justify-content-between small mb-1"><span>За предоплату</span> <span>+2%</span></div><div class="calc-bar-bg"><div id="calcPrepayBar" class="calc-bar-fill" style="background-color: var(--accent-green); width:100%"></div></div></div></div></div><div class="d-flex justify-content-between align-items-end mt-4 pt-3 border-top"><span class="text-muted">Итого к оплате:</span><span class="fs-3 fw-bold" id="calcFinalPrice">0 млн</span></div></div></div></div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    const tg = window.Telegram.WebApp; tg.expand();
-    const CONFIG = { batch: 24 };
-    const FILE_DB = 'price.xlsx'; const FILE_REF = 'reference.xlsx';
+    const tg = window.Telegram.WebApp;
+    tg.expand();
 
-    // === КАТЕГОРИИ И БРЕНДЫ (ДЛЯ СОРТИРОВКИ) ===
+    const CONFIG = { batch: 24 };
     const PRIORITY_CATS = ["Офисные принадлежности и деловые аксессуары"];
-    const PRIORITY_OFFICE_CATS = ["Степлеры, антистеплеры, скобы", "Дыроколы", "Ножницы и канцелярские ножи"];
-    const PRIORITY_BRANDS = ["Linc", "ГАММА", "Claro", "Berlingo"];
+    const PRIORITY_BRANDS = ["Linc", "ГАММА", "Claro", "Berlingo", "ALTA", "COLOP", "BG", "Svetocopy", "Снегурочка"];
+    const PRIORITY_OFFICE_CATS = [ "Степлеры, антистеплеры, скобы", "Дыроколы", "Ножницы и канцелярские ножи", "Доски", "Калькуляторы", "Органайзеры, настольные наборы и лотки", "Подставки и стаканы", "Зажимы" ];
+
+    // === ВАЖНО: ИМЕНА ФАЙЛОВ ===
+    const FILE_DB = 'price.xlsx';
+    const FILE_REF = 'reference.xlsx';
+
+
+
+
+
 
     const DISCOUNT_PROFILES = {
-        'new_partner': { tiers: [5, 10, 25], percents: [2, 3, 5] },
-        'active': { tiers: [0], percents: [0] }
+        'new_partner': { 
+            name: "Новый партнер", 
+            tiers: [5, 10, 25, 50, 100, 150], 
+            percents: [2, 3, 5, 7, 9, 11] 
+        },
+        'active': { 
+            name: "Действующий партнер", 
+            tiers: [0],     // 0 = Шкала не работает
+            percents: [0]   // 0% за объем
+        },
+        'market_urikzar': { 
+            name: "Рынок Урикзар", 
+            tiers: [0], 
+            percents: [0] 
+        },
+        'market_solnechny': { 
+            name: "Рынок Солнечный", 
+            tiers: [0], 
+            percents: [0] 
+        }
     };
 
     let state = { 
         db: [], filtered: [], cart: {}, loaded: 0, currentProduct: null, currentBoxSize: 1, sort: 'price_asc',
         mode: 'deli', activeCat1: 'all', activeCat2: 'all', activeSub: 'all', activeBrand: 'all',
-        userId: 0, clientType: 'new_partner', deliveryMethod: 'standard'
+        userId: 0, clientType: 'new_partner', currentProfile: DISCOUNT_PROFILES['new_partner']
     };
-    let categoriesRef = {}; 
 
+    let lastTierPct = 0; let categoriesRef = {}; 
+
+    // --- MAIN LOGIC ---
     document.addEventListener('DOMContentLoaded', () => {
-        const p = new URLSearchParams(window.location.search);
-        state.userId = p.get('userId') || 0;
-        state.clientType = p.get('clientType') || 'new_partner';
-        document.getElementById('userStatusChip').innerText = state.clientType;
-        
+        initWebAppParams();
+
+        // Auto-load Logic
         initDataLoading();
-        
-        let lastScrollTop = 0; const h = document.getElementById('mainHeader');
+
+        let lastScrollTop = 0; const header = document.getElementById('mainHeader'); const footer = document.getElementById('mainFooter');
         window.addEventListener('scroll', () => {
-            let st = window.pageYOffset || document.documentElement.scrollTop;
-            if (st > lastScrollTop && st > 100) h.classList.add('hidden'); else h.classList.remove('hidden');
-            lastScrollTop = st <= 0 ? 0 : st;
+            requestAnimationFrame(() => {
+                let st = window.pageYOffset || document.documentElement.scrollTop;
+                if (st > lastScrollTop && st > 100) { header.classList.add('hidden'); footer.classList.remove('hidden'); } else if (st < lastScrollTop) { header.classList.remove('hidden'); footer.classList.add('hidden'); } lastScrollTop = st <= 0 ? 0 : st;
+            });
         });
-        
-        document.getElementById('searchInput').addEventListener('input', e => { setTimeout(filterData, 300); window.scrollTo({top:0,behavior:'smooth'}); });
-        new IntersectionObserver(e => { if(e[0].isIntersecting) renderBatch(); }).observe(document.getElementById('scrollSentinel'));
+        document.getElementById('searchInput').addEventListener('input', e => { setTimeout(() => filterData(), 300); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+        const sentinel = document.getElementById('scrollSentinel');
+        new IntersectionObserver(entries => { if(entries[0].isIntersecting && state.loaded < state.filtered.length) renderBatch(); }, { rootMargin: '400px' }).observe(sentinel);
+        initCalculator();
+        initDragScroll(); 
     });
 
+    function initWebAppParams() {
+        const urlParams = new URLSearchParams(window.location.search);
+        state.userId = urlParams.get('userId') || tg.initDataUnsafe?.user?.id || 0;
+        
+        // По умолчанию используем new_partner
+        const typeParam = urlParams.get('clientType') || 'new_partner';
+        
+        if (DISCOUNT_PROFILES[typeParam]) {
+            state.clientType = typeParam;
+            state.currentProfile = DISCOUNT_PROFILES[typeParam];
+        } else {
+            // Если пришел неизвестный тип, фолбэк на new_partner
+            state.clientType = 'new_partner';
+            state.currentProfile = DISCOUNT_PROFILES['new_partner'];
+        }
+        
+        document.getElementById('userStatusChip').textContent = `Статус: ${state.currentProfile.name}`;
+
+        // == СКРЫВАЕМ КАЛЬКУЛЯТОР ДЛЯ НЕ-НОВЫХ ==
+        if (state.clientType !== 'new_partner') {
+            const btnCalc = document.getElementById('btnCalc');
+            if (btnCalc) btnCalc.style.display = 'none';
+        }
+    }
+
     async function initDataLoading() {
-        document.getElementById('loaderOverlay').style.display = 'flex';
-        try { await fetchReference(); await fetchDatabase(); } 
-        catch(e) { console.error(e); loadLocalDB(); }
-        document.getElementById('loaderOverlay').style.display = 'none';
+        document.getElementById('footerGameText').innerText = "1/2 Загрузка категорий...";
+        try {
+            await fetchReference();
+            document.getElementById('footerGameText').innerText = "2/2 Загрузка товаров...";
+            await fetchDatabase();
+            document.getElementById('footerGameText').innerText = "Готово!";
+        } catch (e) {
+            console.error("Critical Load Error:", e);
+            document.getElementById('footerGameText').innerText = "Ошибка загрузки";
+            loadLocalDB();
+        }
     }
 
     async function fetchReference() {
         try {
-            const r = await fetch(FILE_REF); if(!r.ok) throw new Error();
-            const ab = await r.arrayBuffer(); const wb = XLSX.read(ab,{type:'array'});
-            const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header:1});
-            const ref = {};
-            for(let i=1; i<json.length; i++) { if(json[i][4]) ref[json[i][4].toString().trim()] = {c1:json[i][1], c2:json[i][2], s:json[i][3]}; }
-            categoriesRef = ref; localStorage.setItem('df_ref', JSON.stringify(ref));
-        } catch(e) {}
+            const response = await fetch(FILE_REF);
+            if (!response.ok) throw new Error("Справочник не найден");
+            const arrayBuffer = await response.arrayBuffer();
+            const wb = XLSX.read(arrayBuffer, {type:'array'});
+            const ws = wb.Sheets[wb.SheetNames[0]];
+            const json = XLSX.utils.sheet_to_json(ws, {header:1});
+
+            const newRef = {};
+            // Exp: [4]Art, [1]Cat1, [2]Cat2, [3]Sub
+            for(let i=1; i<json.length; i++) {
+                const r = json[i];
+                if(r && r[4]) { 
+                    const art = r[4].toString().trim(); 
+                    newRef[art] = { c1: r[1], c2: r[2], s: r[3] }; 
+                }
+            }
+            categoriesRef = newRef;
+            localStorage.setItem('df_ref', JSON.stringify(categoriesRef));
+        } catch (e) {
+            console.warn("Справочник не обновлен, используем кэш:", e);
+            const cached = localStorage.getItem('df_ref');
+            if(cached) categoriesRef = JSON.parse(cached);
+        }
     }
 
     async function fetchDatabase() {
-        const r = await fetch(FILE_DB); if(!r.ok) throw new Error();
-        const ab = await r.arrayBuffer(); const wb = XLSX.read(ab,{type:'array'});
-        const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header:1});
-        
-        let head=-1; for(let i=0; i<30; i++) if(JSON.stringify(json[i]||[]).toLowerCase().includes('артикул')) { head=i; break; }
-        if(head===-1) throw new Error();
+        const response = await fetch(FILE_DB);
+        if (!response.ok) throw new Error("База не найдена");
 
-        let cArt=0, cBr=1, cNm=2, cRet=4, cDeal=5, cPk=9;
-        json[head].forEach((x,i) => {
-            const s = String(x||'').toLowerCase();
-            if(s.includes('артикул')) cArt=i; else if(s.includes('бренд')) cBr=i;
-            else if(s.includes('наименование')) cNm=i; else if(s.includes('розн')) cRet=i;
-            else if(s.includes('дилер')) cDeal=i; else if(s.includes('упак')) cPk=i;
+        const arrayBuffer = await response.arrayBuffer();
+        const wb = XLSX.read(arrayBuffer, {type:'array'});
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json(ws, {header:1});
+
+        // 1. Ищем строку заголовков (где есть слово "Артикул")
+        let head = -1; 
+        for(let i=0; i<50; i++) {
+            if(JSON.stringify(json[i]||[]).toLowerCase().includes('артикул')) { head=i; break; }
+        }
+        if(head === -1) throw new Error("Неверный формат базы (нет заголовка 'Артикул')");
+
+        // 2. АВТО-ПОИСК КОЛОНОК (SMART MAPPING)
+
+        let colArt = 0; // A
+        let colBrand = 1; // B
+        let colName = 2; // C
+        let colRetail = 4; // E
+        let colDealer = 5; // F
+        let colPromo = 6; // G
+        let colPack = 9; // J
+
+
+        const headers = json[head].map(h => String(h || '').toLowerCase());
+
+        headers.forEach((h, idx) => {
+            if (h.includes('артикул')) colArt = idx;
+            else if (h.includes('бренд') || h.includes('brand')) colBrand = idx;
+            else if (h.includes('наименование') || h.includes('товар')) colName = idx;
+            else if (h.includes('ташкент') || h.includes('розн') || h.includes('ррц')) colRetail = idx;
+            else if (h.includes('дилер') || h.includes('партнер') || h.includes('опт')) colDealer = idx;
+            else if (h.includes('акция') || h.includes('коммент')) colPromo = idx;
+            else if (h.includes('упак') || h.includes('влож') || h.includes('кор')) colPack = idx;
         });
+
+        console.log(`Mapping: Art=${colArt}, Retail=${colRetail}, Dealer=${colDealer}, Pack=${colPack}`);
 
         const db = [];
         for(let i=head+1; i<json.length; i++) {
-            const row = json[i];
-            if(row && row[cArt]) {
-                const art = row[cArt].toString().trim();
-                const ref = categoriesRef[art] || {c1:'Другое', c2:'', s:''};
-                const cln = v => parseFloat((v||0).toString().replace(/\s/g,'').replace(',','.'))||0;
-                db.push({
-                    id: art, br: row[cBr], nm: row[cNm],
-                    pp: cln(row[cRet]), pd: cln(row[cDeal]), pk: row[cPk],
-                    c1: ref.c1, c2: ref.c2, sub: ref.s
+            const r = json[i];
+            if(r && r[colArt]) {
+                const clean = v => parseFloat((v||0).toString().replace(/\s/g,'').replace(',','.')) || 0;
+
+                const art = r[colArt].toString().trim();
+                const ref = categoriesRef[art] || {c1: 'Другое', c2: '', s: ''};
+
+                // Используем найденные номера колонок
+                db.push({ 
+                    id: art, 
+                    br: r[colBrand], 
+                    nm: r[colName], 
+                    pp: clean(r[colRetail]), 
+                    pd: clean(r[colDealer]), 
+                    ps: 0, 
+                    pr: r[colPromo], 
+                    pk: r[colPack], 
+                    c1: ref.c1, c2: ref.c2, sub: ref.s 
                 });
             }
         }
-        state.db = db; localStorage.setItem('df_db', JSON.stringify(db));
-        if(db.length) { 
-            state.activeCat1='Офисные принадлежности и деловые аксессуары'; 
-            state.activeCat2='Степлеры, антистеплеры, скобы';
-            renderModeRow(); filterData(); updateGlobalState(); 
+
+        if (db.length > 0) {
+            state.db = db;
+            localStorage.setItem('df_db', JSON.stringify(db));
+            document.getElementById('noDbState').classList.add('d-none');
+
+            const uniqueCats = new Set(state.db.map(p => p.c1));
+            if (uniqueCats.size <= 1) state.db.forEach(p => p.c1 = p.br);
+
+            state.mode = 'deli';
+            state.activeCat1 = 'Офисные принадлежности и деловые аксессуары';
+            state.activeCat2 = 'Степлеры, антистеплеры, скобы';
+            state.activeSub = 'all';
+
+            renderModeRow(); filterData(); updateGlobalState();
         }
     }
-    
+
     function loadLocalDB() {
-        const d = localStorage.getItem('df_db');
-        if(d) { state.db = JSON.parse(d); renderModeRow(); filterData(); updateGlobalState(); }
-        else document.getElementById('emptyState').classList.remove('d-none');
+        const raw = localStorage.getItem('df_db');
+        const rawRef = localStorage.getItem('df_ref');
+        if(rawRef) categoriesRef = JSON.parse(rawRef);
+        if(raw) { 
+            state.db = JSON.parse(raw); 
+            document.getElementById('noDbState').classList.add('d-none'); 
+            renderModeRow(); filterData(); updateGlobalState(); 
+        } else document.getElementById('noDbState').classList.remove('d-none');
     }
 
-    // --- NAVIGATION RENDERERS (THE FIX) ---
+    // --- DISCOUNT LOGIC ---
+    const DiscountSystem = {
+        getTierPercent: function(sum) {
+            const tiers = state.currentProfile.tiers;
+            const percents = state.currentProfile.percents;
+            // Если шкала отключена (0)
+            if (tiers.length === 1 && tiers[0] === 0) return 0;
+
+            let millions = sum / 1000000;
+            let pct = 0;
+            for (let i = 0; i < tiers.length; i++) {
+                if (millions >= tiers[i]) pct = percents[i]; else break;
+            }
+            if (millions >= tiers[tiers.length - 1]) pct = percents[percents.length - 1];
+            return pct;
+        },
+        getRangeInfo: function(sum) {
+            const tiers = state.currentProfile.tiers;
+            const percents = state.currentProfile.percents;
+            
+            // Если шкала отключена
+            if (tiers.length === 1 && tiers[0] === 0) {
+                return { hasTiers: false };
+            }
+
+            let millions = sum / 1000000;
+            let prev = 0; let next = tiers[0]; let nextPct = percents[0];
+            for (let i = 0; i < tiers.length; i++) {
+                if (millions >= tiers[i]) {
+                    prev = tiers[i];
+                    if (i + 1 < tiers.length) { next = tiers[i+1]; nextPct = percents[i+1]; } else { next = tiers[i]; nextPct = percents[i]; }
+                } else { next = tiers[i]; nextPct = percents[i]; break; }
+            }
+            return { hasTiers: true, prevLimit: prev * 1000000, nextLimit: next * 1000000, nextPct: nextPct, isMax: millions >= tiers[tiers.length - 1] };
+        },
+        calculate: function(dealerSum, isPrepay, isPromo) {
+            const tierPct = this.getTierPercent(dealerSum);
+            const sumAfterTier = dealerSum - (dealerSum * (tierPct / 100));
+            let payPct = 0; if(isPromo) payPct += 4; if(isPrepay) payPct += 2;
+            const finalSum = sumAfterTier - (sumAfterTier * (payPct / 100));
+            const impliedRetail = dealerSum / 0.85; 
+            const totalBenefit = impliedRetail - finalSum;
+            return { baseSum: dealerSum, tierPct: tierPct, sumAfterTier: sumAfterTier, payPct: payPct, finalSum: finalSum, totalBenefit: totalBenefit };
+        }
+    };
+
+    // --- RENDER & NAVIGATION ---
     function renderModeRow() {
-        const c = document.getElementById('rowMode'); c.innerHTML='';
-        const add = (txt, val) => {
-            const d = document.createElement('div'); d.className=`pill-mode ${state.mode===val?'active':''}`;
-            d.innerText=txt; d.onclick=()=>{ setMode(val); }; c.appendChild(d);
-        };
-        add('Deli', 'deli'); add('Deskform', 'deskform');
-        renderL2();
-    }
-    
-    function setMode(m) {
-        state.mode = m; state.activeCat1='all'; state.activeCat2='all'; state.activeSub='all'; state.activeBrand='all';
-        if(m==='deli') { state.activeCat1='Офисные принадлежности и деловые аксессуары'; state.activeCat2='Степлеры, антистеплеры, скобы'; } else { state.activeBrand='Linc'; }
-        renderModeRow(); filterData();
+        const container = document.getElementById('rowMode'); container.innerHTML = '';
+        const btnDeli = document.createElement('div'); btnDeli.className = `pill-mode ${state.mode === 'deli' ? 'active' : ''}`; btnDeli.textContent = "Deli"; btnDeli.onclick = () => setMode('deli'); container.appendChild(btnDeli);
+        const btnDf = document.createElement('div'); btnDf.className = `pill-mode ${state.mode === 'deskform' ? 'active' : ''}`; btnDf.textContent = "Ассортимент Deskform"; btnDf.onclick = () => setMode('deskform'); container.appendChild(btnDf);
+        renderLevel2(); setTimeout(() => { const h = document.getElementById('mainHeader').offsetHeight; document.querySelector('.container-main').style.paddingTop = (h + 16) + 'px'; }, 50);
     }
 
-    function renderL2() {
-        const c = document.getElementById('rowL2'); c.innerHTML='';
-        if(state.mode==='deli') {
-            const u = {}; state.db.filter(x=>x.br==='Deli').forEach(x=>u[x.c1||'Другое']=1);
-            let s = Object.keys(u).sort(); s=[...PRIORITY_CATS.filter(x=>s.includes(x)), ...s.filter(x=>!PRIORITY_CATS.includes(x))];
-            s.forEach(k => { const d=document.createElement('div'); d.className=`pill-l1 ${state.activeCat1===k?'active':''}`; d.innerText=k; d.onclick=()=>{state.activeCat1=k; state.activeCat2='all'; state.activeSub='all'; renderL2(); filterData();}; c.appendChild(d); });
-            renderL3();
+    function setMode(mode) {
+        state.mode = mode; state.activeCat1 = 'all'; state.activeCat2 = 'all'; state.activeSub = 'all'; state.activeBrand = 'all';
+        if (mode === 'deli') { state.activeCat1 = 'Офисные принадлежности и деловые аксессуары'; state.activeCat2 = 'Степлеры, антистеплеры, скобы'; } else { state.activeBrand = 'Linc'; }
+        renderModeRow(); filterData(); window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderLevel2() {
+        const container = document.getElementById('rowL2'); container.innerHTML = ''; container.classList.add('visible');
+        if (state.mode === 'deli') {
+            const cats = {}; state.db.filter(p => p.br === 'Deli').forEach(p => { const c = p.c1 || 'Другое'; if (c !== 'Другое') cats[c] = (cats[c] || 0) + 1; });
+            let sorted = Object.keys(cats).sort(); sorted = [...PRIORITY_CATS.filter(x => sorted.includes(x)), ...sorted.filter(x => !PRIORITY_CATS.includes(x))];
+            sorted.forEach(c => { const pill = document.createElement('div'); pill.className = `pill-l1 ${state.activeCat1 === c ? 'active' : ''}`; pill.innerHTML = `${c} <span class="cnt">${cats[c]}</span>`; pill.onclick = () => selectCat1(c); container.appendChild(pill); });
+            renderLevel3Deli();
         } else {
-            const u = {}; state.db.filter(x=>x.br!=='Deli').forEach(x=>u[x.br]=1);
-            let s = Object.keys(u).sort(); s=[...PRIORITY_BRANDS.filter(x=>s.includes(x)), ...s.filter(x=>!PRIORITY_BRANDS.includes(x))];
-            s.forEach(k => { const d=document.createElement('div'); d.className=`pill-l1 ${state.activeBrand===k?'active':''}`; d.innerText=k; d.onclick=()=>{state.activeBrand=k; renderL2(); filterData();}; c.appendChild(d); });
-            document.getElementById('rowL3').innerHTML=''; document.getElementById('rowL4').innerHTML='';
+            const brands = {}; state.db.filter(p => p.br !== 'Deli').forEach(p => { brands[p.br] = (brands[p.br] || 0) + 1; });
+            let sorted = Object.keys(brands).sort(); sorted = [...PRIORITY_BRANDS.filter(x => sorted.includes(x)), ...sorted.filter(x => !PRIORITY_BRANDS.includes(x))];
+            sorted.forEach(b => { const pill = document.createElement('div'); pill.className = `pill-l1 ${state.activeBrand === b ? 'active' : ''}`; pill.innerHTML = `${b} <span class="cnt">${brands[b]}</span>`; pill.onclick = () => selectBrand(b); container.appendChild(pill); });
+            document.getElementById('rowL3').classList.remove('visible'); document.getElementById('rowL4').classList.remove('visible');
         }
     }
 
-    function renderL3() {
-        const c = document.getElementById('rowL3'); c.innerHTML='';
-        if(state.activeCat1==='all') return;
-        const u = {}; state.db.filter(x=>x.br==='Deli' && x.c1===state.activeCat1).forEach(x=>u[x.c2||'']=1);
-        let s = Object.keys(u).sort(); 
-        if(state.activeCat1.includes('Офис')) s=[...PRIORITY_OFFICE_CATS.filter(x=>s.includes(x)), ...s.filter(x=>!PRIORITY_OFFICE_CATS.includes(x))];
-        s.forEach(k => { const d=document.createElement('div'); d.className=`pill-l2 ${state.activeCat2===k?'active':''}`; d.innerText=k; d.onclick=()=>{state.activeCat2=k; state.activeSub='all'; renderL3(); filterData();}; c.appendChild(d); });
-        renderL4();
+    function renderLevel3Deli() {
+        const row3 = document.getElementById('rowL3'); if (state.activeCat1 === 'all') { row3.classList.remove('visible'); return; }
+        const cats2 = {}; state.db.filter(p => p.br === 'Deli' && p.c1 === state.activeCat1).forEach(p => { if(p.c2) cats2[p.c2] = (cats2[p.c2] || 0) + 1; });
+        if (Object.keys(cats2).length === 0) { row3.classList.remove('visible'); return; }
+        row3.classList.add('visible'); row3.innerHTML = '';
+        let sorted = Object.keys(cats2).sort();
+        if (state.activeCat1 === 'Офисные принадлежности и деловые аксессуары') { const priority = PRIORITY_OFFICE_CATS.filter(x => sorted.includes(x)); const others = sorted.filter(x => !PRIORITY_OFFICE_CATS.includes(x)); sorted = [...priority, ...others]; }
+        sorted.forEach(c => { const pill = document.createElement('div'); pill.className = `pill-l2 ${state.activeCat2 === c ? 'active' : ''}`; pill.innerHTML = `${c} <span class="cnt">${cats2[c]}</span>`; pill.onclick = () => selectCat2(c); row3.appendChild(pill); });
+        renderLevel4Deli();
     }
 
-    function renderL4() {
-        const c = document.getElementById('rowL4'); c.innerHTML='';
-        if(state.activeCat2==='all') return;
-        const u = {}; state.db.filter(x=>x.br==='Deli' && x.c1===state.activeCat1 && x.c2===state.activeCat2).forEach(x=>u[x.sub||'']=1);
-        const add = (k, l) => { const d=document.createElement('div'); d.className=`pill-l3 ${state.activeSub===k?'active':''}`; d.innerText=l; d.onclick=()=>{state.activeSub=k; filterData();}; c.appendChild(d); };
-        add('all', 'Все');
-        Object.keys(u).sort().forEach(k => add(k, k));
+    function renderLevel4Deli() {
+        const row4 = document.getElementById('rowL4'); if (state.activeCat2 === 'all') { row4.classList.remove('visible'); return; }
+        const subs = {}; state.db.filter(p => p.br === 'Deli' && p.c1 === state.activeCat1 && p.c2 === state.activeCat2 && p.sub).forEach(p => { subs[p.sub] = (subs[p.sub] || 0) + 1; });
+        if (Object.keys(subs).length === 0) { row4.classList.remove('visible'); return; }
+        row4.classList.add('visible'); row4.innerHTML = '';
+        const allPill = document.createElement('div'); allPill.className = `pill-l3 ${state.activeSub === 'all' ? 'active' : ''}`; allPill.innerHTML = `Все`; allPill.onclick = () => selectSub('all'); row4.appendChild(allPill);
+        Object.keys(subs).sort().forEach(s => { const pill = document.createElement('div'); pill.className = `pill-l3 ${state.activeSub === s ? 'active' : ''}`; pill.innerHTML = `${s} <span class="cnt">${subs[s]}</span>`; pill.onclick = () => selectSub(s); row4.appendChild(pill); });
     }
+
+    function selectCat1(val) { state.activeCat1 = val; state.activeCat2 = 'all'; state.activeSub = 'all'; renderLevel2(); filterData(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    function selectCat2(val) { state.activeCat2 = val; state.activeSub = 'all'; renderLevel3Deli(); filterData(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    function selectSub(val) { state.activeSub = val; renderLevel4Deli(); filterData(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    function selectBrand(val) { state.activeBrand = val; renderLevel2(); filterData(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
     function filterData() {
         const q = document.getElementById('searchInput').value.toLowerCase().trim();
         let list = state.db.filter(p => {
-            if(q && !p.nm.toLowerCase().includes(q) && !p.id.toLowerCase().includes(q)) return false;
-            if(state.mode==='deli') {
-                if(p.br!=='Deli') return false;
-                if(state.activeCat1!=='all' && p.c1!==state.activeCat1) return false;
-                if(state.activeCat2!=='all' && p.c2!==state.activeCat2) return false;
-                if(state.activeSub!=='all' && p.sub!==state.activeSub) return false;
+            const matchesSearch = !q || p.nm.toLowerCase().includes(q) || p.id.toLowerCase().includes(q);
+            if (!matchesSearch) return false;
+            if (state.mode === 'deli') {
+                if (p.br !== 'Deli') return false; 
+                if (state.activeCat1 !== 'all' && p.c1 !== state.activeCat1) return false;
+                if (state.activeCat2 !== 'all' && p.c2 !== state.activeCat2) return false;
+                if (state.activeSub !== 'all' && p.sub !== state.activeSub) return false;
             } else {
-                if(p.br==='Deli') return false;
-                if(state.activeBrand!=='all' && p.br!==state.activeBrand) return false;
+                if (p.br === 'Deli') return false;
+                if (state.activeBrand !== 'all' && p.br !== state.activeBrand) return false;
             }
             return true;
         });
-        if(state.sort==='price_asc') list.sort((a,b)=>a.pd - b.pd);
-        state.filtered = list; document.getElementById('productsGrid').innerHTML=''; state.loaded=0; renderBatch();
+        if(state.sort === 'price_asc') list.sort((a,b) => getRawPrice(a) - getRawPrice(b));
+        state.filtered = list; document.getElementById('productsGrid').innerHTML = ''; state.loaded = 0;
+        document.getElementById('emptyState').classList.toggle('d-none', state.filtered.length > 0); renderBatch();
+    }
+
+    function getRawPrice(p) { 
+        // Если есть спеццена (ps) и она меньше дилерской (pd) - используем её
+        return (p.ps > 0 && p.ps < p.pd) ? p.ps : p.pd; 
     }
 
     function renderBatch() {
-        const batch = state.filtered.slice(state.loaded, state.loaded+CONFIG.batch);
-        const f = document.createDocumentFragment();
+        const batch = state.filtered.slice(state.loaded, state.loaded + CONFIG.batch); if(!batch.length) return;
+        const fragment = document.createDocumentFragment();
         batch.forEach(p => {
-            const d = document.createElement('div'); d.className='col';
-            const cnt = state.cart[p.id]||0;
-            d.innerHTML = `<div class="product-card" onclick="openProduct('${p.id}')">
-                <div class="chip-brand">${p.br}</div>
-                <div class="img-wrapper"><img src="img/${p.id}.png" loading="lazy" onerror="this.src='https://dummyimage.com/200x200/eee/aaa&text=No+Img'">
-                <div class="cart-indicator" style="display:${cnt?'flex':'none'}">${cnt}</div></div>
-                <div class="card-info"><div class="card-title text-dark">${p.nm}</div>
-                <div class="price-curr">${p.pd.toLocaleString()}</div></div></div>`;
-            f.appendChild(d);
+            const el = document.createElement('div'); el.className = 'col';
+            const price = getRawPrice(p); const inCart = state.cart[p.id] || 0; 
+            const pack = (p.pk || '').toString().replace(/^'/, '');
+            let promoBadge = ''; if(p.pr) { let cls = 'badge-promo'; if(p.pr.toLowerCase().includes('миним')) cls += ' badge-green'; promoBadge = `<div class="${cls}">${p.pr}</div>`; }
+
+            // Image Logic with 'img/' folder
+            el.innerHTML = `
+                <div class="product-card" onclick="openProduct('${p.id}')">
+                    <div class="chip-brand">${p.br}</div><div class="chip-pack">${pack}</div>
+                    <div class="img-wrapper"><img src="img/${p.id}.png" loading="lazy" data-id="${p.id}" onerror="handleImgError(this)"><div class="cart-indicator" id="badge-${p.id}" style="${inCart > 0 ? '' : 'display:none'}">${inCart}</div></div>
+                    <div class="card-info"><div class="card-title-text text-dark">${p.nm}</div><div class="text-muted small mb-1" style="font-size:0.75rem">Арт: ${p.id}</div>
+                        <div class="price-row"><div class="price-col"><span class="price-retail-label">Цена в Ташкенте: ${p.pp > 0 ? p.pp.toLocaleString() + ' сум' : '---'}</span><div class="price-curr">${price.toLocaleString()} сум</div></div>${promoBadge}</div>
+                    </div>
+                </div>`;
+            fragment.appendChild(el);
         });
-        document.getElementById('productsGrid').appendChild(f); state.loaded+=batch.length;
-        document.getElementById('emptyState').classList.toggle('d-none', state.filtered.length>0);
+        document.getElementById('productsGrid').appendChild(fragment); state.loaded += batch.length;
     }
 
-    // --- CART ---
+    function handleImgError(img) { const id = img.getAttribute('data-id'); const step = parseInt(img.getAttribute('data-step') || 0); if (step === 0) { img.setAttribute('data-step', 1); img.src = `img/${id}.jpg`; } else if (step === 1) { img.setAttribute('data-step', 2); img.src = `img/${id}.jpeg`; } else { img.src = 'https://dummyimage.com/200x200/f0f0f0/ccc&text=Нет+фото'; img.style.opacity = 0.5; } }
+
+    function initDragScroll() {
+        const sliders = document.querySelectorAll('.scroll-row');
+        sliders.forEach(slider => {
+            let isDown = false; let startX; let scrollLeft;
+            slider.addEventListener('mousedown', (e) => { isDown = true; slider.classList.add('active'); startX = e.pageX - slider.offsetLeft; scrollLeft = slider.scrollLeft; });
+            slider.addEventListener('mouseleave', () => { isDown = false; slider.classList.remove('active'); });
+            slider.addEventListener('mouseup', () => { isDown = false; slider.classList.remove('active'); });
+            slider.addEventListener('mousemove', (e) => { if(!isDown) return; e.preventDefault(); const x = e.pageX - slider.offsetLeft; const walk = (x - startX) * 2; slider.scrollLeft = scrollLeft - walk; });
+        });
+    }
+
+    // --- CART & SUBMIT ---
     function openProduct(id) {
-        const p = state.db.find(x=>x.id===id); if(!p) return;
-        state.currentProduct = p;
-        document.getElementById('modalTitle').innerText = p.nm;
-        document.getElementById('modalArt').innerText = p.id;
-        document.getElementById('modalRetailPrice').innerText = p.pp>0?p.pp.toLocaleString():'---';
-        document.getElementById('modalDealerPrice').innerText = p.pd.toLocaleString() + ' сум';
-        document.getElementById('modalImg').src = `img/${id}.png`;
-        
-        const nums = (p.pk||'').toString().match(/\d+/g);
-        const maxBox = nums ? Math.max(...nums.map(Number)) : 1;
+        const p = state.db.find(x => x.id === id); if(!p) return;
+        state.currentProduct = p; 
+        state.currentBoxSize = 1;
+
+        // UI Updates
+        document.getElementById('modalTitle').textContent = p.nm; 
+        document.getElementById('modalArt').textContent = p.id;
+        document.getElementById('modalRetailPrice').textContent = p.pp > 0 ? p.pp.toLocaleString() + ' сум' : '---';
+        const price = getRawPrice(p); 
+        document.getElementById('modalDealerPrice').textContent = price.toLocaleString() + ' сум';
+
+        // Image
+        const img = document.getElementById('modalImg'); img.removeAttribute('data-step'); img.setAttribute('data-id', id); img.src = `img/${id}.png`; img.onerror = function() { handleImgError(this) };
+
+        // --- BOX CALCULATION FIX ---
+        // Получаем строку упаковки, например "1/12/144"
+        const pkStr = String(p.pk || '').replace(/^'/, ''); 
+        // Ищем все числа
+        const nums = pkStr.match(/\d+/g); 
+        let maxBox = 1; 
+        if(nums && nums.length > 0) { 
+            // Берем самое большое число как размер коробки
+            maxBox = Math.max(...nums.map(Number)); 
+        } 
         state.currentBoxSize = maxBox;
-        
-        const box = document.getElementById('modeBox');
-        if(maxBox>1) { box.disabled=false; document.getElementById('boxLabel').innerText=`x${maxBox}`; box.checked=true; }
-        else { box.disabled=true; document.getElementById('boxLabel').innerText=''; document.getElementById('modeUnit').checked=true; }
-        
-        const cur = state.cart[p.id]||0;
-        document.getElementById('qtyInput').value = (document.getElementById('modeBox').checked && maxBox>1) ? cur/maxBox : cur;
-        updateCalc();
+
+        const boxRadio = document.getElementById('modeBox'); 
+        if(maxBox > 1) { 
+            boxRadio.disabled = false; 
+            document.getElementById('boxLabel').textContent = `x${maxBox}`; 
+            boxRadio.checked = true; 
+        } else { 
+            boxRadio.disabled = true; 
+            document.getElementById('boxLabel').textContent = ''; 
+            document.getElementById('modeUnit').checked = true; 
+        }
+
+        let currentQty = state.cart[p.id] || 0; 
+        let displayQty = 0; 
+        if (currentQty > 0) { 
+            const isBox = document.getElementById('modeBox').checked; 
+            displayQty = isBox ? currentQty / maxBox : currentQty; 
+        } else { 
+            displayQty = 1; 
+        }
+
+        document.getElementById('qtyInput').value = displayQty; 
+        updateCalc(); 
         new bootstrap.Modal(document.getElementById('productModal')).show();
     }
 
-    function updateCalc() {
-        const p = state.currentProduct; if(!p) return;
-        const box = document.getElementById('modeBox').checked;
-        const qty = (parseInt(document.getElementById('qtyInput').value)||0) * (box ? state.currentBoxSize : 1);
-        document.getElementById('calcTotalPrice').innerText = (qty * p.pd).toLocaleString();
-    }
-    function adjustQty(d) {
-        const i = document.getElementById('qtyInput'); let v = (parseInt(i.value)||0)+d; if(v<0) v=0; i.value=v; updateCalc();
-    }
-    function confirmAddToCart() {
-        const p = state.currentProduct; 
-        const qty = (parseInt(document.getElementById('qtyInput').value)||0) * (document.getElementById('modeBox').checked ? state.currentBoxSize : 1);
-        if(qty>0) state.cart[p.id]=qty; else delete state.cart[p.id];
-        updateGlobalState(); bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
+    function adjustQty(delta) { const input = document.getElementById('qtyInput'); let newVal = (parseInt(input.value) || 0) + delta; if(newVal < 0) newVal = 0; input.value = newVal; updateCalc(); }
+
+    function updateCalc() { 
+        const p = state.currentProduct; if(!p) return; 
+        const isBox = document.getElementById('modeBox').checked; 
+        const inputVal = parseInt(document.getElementById('qtyInput').value) || 0; 
+        const multiplier = isBox ? state.currentBoxSize : 1; 
+        const realQty = inputVal * multiplier; 
+        const price = getRawPrice(p); 
+        document.getElementById('calcTotalPrice').textContent = (realQty * price).toLocaleString(); 
     }
 
+    function confirmAddToCart() { 
+        const p = state.currentProduct; if(!p) return; 
+        const isBox = document.getElementById('modeBox').checked; 
+        const inputVal = parseInt(document.getElementById('qtyInput').value) || 0; 
+        const multiplier = isBox ? state.currentBoxSize : 1; 
+        const finalQty = inputVal * multiplier; 
+        if(finalQty > 0) state.cart[p.id] = finalQty; else delete state.cart[p.id]; 
+        updateGlobalState(); 
+        bootstrap.Modal.getInstance(document.getElementById('productModal')).hide(); 
+    }
+
+    function showLevelUpToast(percent) { const toast = document.createElement('div'); toast.className = 'level-up-toast'; toast.innerHTML = `<i class="bi bi-stars"></i> Новый уровень! Скидка ${percent}%`; document.getElementById('toastContainer').appendChild(toast); void toast.offsetWidth; toast.classList.add('visible'); setTimeout(() => { toast.classList.remove('visible'); setTimeout(() => toast.remove(), 500); }, 3000); }
+
     function updateGlobalState() {
-        let sum = 0; Object.keys(state.cart).forEach(k => { const p=state.db.find(x=>x.id===k); if(p) sum+=p.pd*state.cart[k]; });
-        document.getElementById('footerBaseSum').innerText = sum.toLocaleString();
+        const count = Object.keys(state.cart).length; 
+        Object.keys(state.cart).forEach(id => { const badge = document.getElementById(`badge-${id}`); if(badge) { badge.textContent = state.cart[id]; badge.style.display = state.cart[id] > 0 ? 'flex' : 'none'; } });
         
-        const count = Object.keys(state.cart).length;
-        document.getElementById('cartCountBadge').innerText = count;
-        document.getElementById('cartCountBadge').style.display = count?'inline-block':'none';
+        let baseTotal = 0; 
+        Object.keys(state.cart).forEach(id => { const p = state.db.find(x => x.id === id); if(p) baseTotal += getRawPrice(p) * state.cart[id]; });
+        
+        const res = DiscountSystem.calculate(baseTotal, false, false); 
+        document.getElementById('footerBaseSum').textContent = baseTotal.toLocaleString() + ' сум'; 
+        document.getElementById('footerBenefit').textContent = Math.round(res.totalBenefit).toLocaleString() + ' сум';
+        
+        // --- УМНЫЙ ФУТЕР (Updated) ---
+        const footerFill = document.getElementById('footerFill'); 
+        const gameText = document.getElementById('footerGameText'); 
+        const rangeInfo = DiscountSystem.getRangeInfo(baseTotal);
+        
+        if (res.tierPct > lastTierPct && lastTierPct >= 0) showLevelUpToast(res.tierPct); 
+        lastTierPct = res.tierPct;
+
+        if (baseTotal > 0) { 
+            if (!rangeInfo.hasTiers) {
+                // ШКАЛА ОТКЛЮЧЕНА (Действующий партнер)
+                footerFill.style.width = '100%'; 
+                gameText.innerHTML = `Персональная цена активна`; 
+            } else if (rangeInfo.isMax) { 
+                // Максимум достигнут
+                footerFill.style.width = '100%'; 
+                gameText.innerHTML = `Максимальная скидка ${res.tierPct}% получена!`; 
+            } else { 
+                // Процесс набора скидки
+                const tierRange = rangeInfo.nextLimit - rangeInfo.prevLimit; 
+                const progressInTier = baseTotal - rangeInfo.prevLimit; 
+                let fillPct = (progressInTier / tierRange) * 100; 
+                if(fillPct < 5) fillPct = 5; if(fillPct > 100) fillPct = 100; 
+                footerFill.style.width = fillPct + '%'; 
+                const needed = (rangeInfo.nextLimit - baseTotal) / 1000000; 
+                gameText.innerHTML = `Ещё ${needed.toFixed(1)} млн до скидки ${rangeInfo.nextPct}%`; 
+            } 
+        } else { 
+            footerFill.style.width = '0%'; 
+            gameText.innerHTML = 'Сделайте заказ'; 
+        }
+
+        const badge = document.getElementById('cartCountBadge'); 
+        if(count > 0) { badge.textContent = count; badge.style.display = 'inline-block'; } else badge.style.display = 'none'; 
         updateCartFunnel();
     }
 
-    function selectDelivery(m) {
-        state.deliveryMethod = m;
-        document.getElementById('optStandard').classList.remove('selected'); document.getElementById('optStandard').querySelector('.bi').className='bi bi-circle text-muted fs-5';
-        document.getElementById('optExpress').classList.remove('selected'); document.getElementById('optExpress').querySelector('.bi').className='bi bi-circle text-muted fs-5';
-        if(m==='standard') { document.getElementById('optStandard').classList.add('selected'); document.getElementById('optStandard').querySelector('.bi').className='bi bi-check-circle-fill text-primary fs-5'; }
-        else { document.getElementById('optExpress').classList.add('selected'); document.getElementById('optExpress').querySelector('.bi').className='bi bi-check-circle-fill text-primary fs-5'; }
-    }
-    
-    function toggleDropshipFields() {
-        document.getElementById('dropshipFields').classList.toggle('d-none', !document.getElementById('switchDropship').checked);
-    }
+    function updateCartItemQty(id, delta) { if(!state.cart[id]) return; state.cart[id] += delta; if(state.cart[id] <= 0) delete state.cart[id]; updateGlobalState(); }
 
     function updateCartFunnel() {
-        const list = document.getElementById('cartItemsList'); list.innerHTML='';
-        const ids = Object.keys(state.cart);
-        const logistics = document.getElementById('logisticsBlock');
-        const funnel = document.getElementById('cartFunnel');
-        const empty = document.getElementById('cartEmptyMsg');
-
-        if(!ids.length) { empty.classList.remove('d-none'); logistics.classList.add('d-none'); funnel.classList.add('d-none'); return; }
+        const list = document.getElementById('cartItemsList'); const funnel = document.getElementById('cartFunnel'); const ids = Object.keys(state.cart);
+        if(!ids.length) { list.innerHTML = ''; document.getElementById('cartEmptyMsg').classList.remove('d-none'); funnel.classList.add('d-none'); return; }
+        document.getElementById('cartEmptyMsg').classList.add('d-none'); funnel.classList.remove('d-none'); list.innerHTML = '';
         
-        empty.classList.add('d-none'); logistics.classList.remove('d-none'); funnel.classList.remove('d-none');
+        let retailTotal = 0; let baseDealerTotal = 0; 
+        ids.forEach((id, idx) => { const p = state.db.find(x => x.id === id); const qty = state.cart[id]; const price = getRawPrice(p); let retail = p.pp > 0 ? p.pp : Math.round(price / 0.85); retailTotal += retail * qty; baseDealerTotal += price * qty; const div = document.createElement('div'); div.className = 'cart-item'; div.innerHTML = `<div class="cart-item-head"><span class="cart-index">${idx+1}.</span><div class="cart-item-title">${p.nm}</div></div><div class="cart-item-body"><div class="qty-wrapper"><span class="qty-label">Количество:</span><div class="cart-controls"><button class="ctrl-btn" onclick="updateCartItemQty('${id}', -1)"><i class="bi bi-dash"></i></button><div class="ctrl-val">${qty}</div><button class="ctrl-btn" onclick="updateCartItemQty('${id}', 1)"><i class="bi bi-plus"></i></button></div><span class="price-per-unit">x ${price.toLocaleString()}</span></div><div class="cart-item-total"><div class="total-price-val">${(price*qty).toLocaleString()}</div></div><button class="del-btn" onclick="updateCartItemQty('${id}', -${qty})"><i class="bi bi-trash"></i></button></div>`; list.appendChild(div); });
         
-        let sum = 0;
-        ids.forEach((id, i) => {
-            const p = state.db.find(x=>x.id===id); const q = state.cart[id]; const tot = p.pd*q; sum+=tot;
-            list.innerHTML += `<div class="cart-item"><div class="fw-bold small">${i+1}. ${p.nm}</div><div class="d-flex justify-content-between"><div>${q} шт x ${p.pd}</div><div class="fw-bold">${tot.toLocaleString()}</div></div></div>`;
-        });
-
-        const prof = DISCOUNT_PROFILES[state.clientType] || DISCOUNT_PROFILES['new_partner'];
-        let tierPct = 0; 
-        if(prof.tiers[0] !== 0) {
-            const m = sum/1000000;
-            for(let i=0; i<prof.tiers.length; i++) { if(m>=prof.tiers[i]) tierPct=prof.percents[i]; else break; }
+        const isPromo = document.getElementById('cartPromoCheck').checked; const isPrepay = document.getElementById('cartPrepayCheck').checked; 
+        const res = DiscountSystem.calculate(baseDealerTotal, isPrepay, isPromo);
+        
+        document.getElementById('funnelRetail').innerText = Math.round(retailTotal).toLocaleString(); 
+        document.getElementById('funnelBase').innerText = Math.round(baseDealerTotal).toLocaleString(); 
+        
+        // --- СКРЫТИЕ СТРОКИ ОБЪЕМА ---
+        const rangeInfo = DiscountSystem.getRangeInfo(baseDealerTotal);
+        if (rangeInfo.hasTiers) {
+            document.getElementById('funnelRowVolume').classList.remove('d-none');
+            document.getElementById('funnelVol').innerText = Math.round(res.sumAfterTier).toLocaleString(); 
+            document.getElementById('chipVolPct').innerText = `-${res.tierPct}%`; 
+        } else {
+            document.getElementById('funnelRowVolume').classList.add('d-none');
         }
-        const afterTier = sum - (sum*tierPct/100);
-        const prepay = document.getElementById('cartPrepayCheck').checked;
-        const final = afterTier - (afterTier * (prepay?0.02:0));
+        
+        document.getElementById('chipPayPct').innerText = res.payPct > 0 ? `-${res.payPct}%` : '0%'; 
+        document.getElementById('chipPayPct').className = res.payPct > 0 ? 'f-chip green' : 'f-chip gray'; 
+        document.getElementById('funnelFinal').innerText = Math.round(res.finalSum).toLocaleString() + ' сум';
+    }
 
-        document.getElementById('funnelBase').innerText = sum.toLocaleString();
-        document.getElementById('funnelDiscount').innerText = `-${tierPct}%`;
-        document.getElementById('funnelFinal').innerText = Math.round(final).toLocaleString() + ' сум';
+    // --- DROPSHIPPING LOGIC ---
+    function toggleDropshipFields() {
+        const isDropship = document.getElementById('deliveryTypeSwitch').checked;
+        const fields = document.getElementById('dropshipFields');
+        if (isDropship) {
+            fields.classList.remove('d-none');
+        } else {
+            fields.classList.add('d-none');
+        }
     }
 
     function submitOrder() {
         if(!Object.keys(state.cart).length) return;
-        const isDrop = document.getElementById('switchDropship').checked;
-        let rcp = null;
-        if(isDrop) {
-            const n=document.getElementById('dsName').value, p=document.getElementById('dsPhone').value, a=document.getElementById('dsAddress').value;
-            if(!n||!p||!a) { alert("Заполните получателя!"); return; }
-            rcp = {name:n, phone:p, address:a};
-        }
-
-        let base = 0; const items = [];
-        Object.keys(state.cart).forEach(k => {
-            const p = state.db.find(x=>x.id===k);
-            base += p.pd*state.cart[k];
-            items.push({ product_id:k, name:p.nm, qty:state.cart[k], price_per_unit:p.pd, total:p.pd*state.cart[k] });
-        });
-
-        const prepay = document.getElementById('cartPrepayCheck').checked;
         
-        // RECALC FINAL
-        const prof = DISCOUNT_PROFILES[state.clientType] || DISCOUNT_PROFILES['new_partner'];
-        let tierPct = 0; 
-        if(prof.tiers[0] !== 0) {
-            const m = base/1000000;
-            for(let i=0; i<prof.tiers.length; i++) { if(m>=prof.tiers[i]) tierPct=prof.percents[i]; else break; }
-        }
-        const final = (base - (base*tierPct/100)) * (prepay?0.98:1);
+        const isPromo = document.getElementById('cartPromoCheck').checked;
+        const isPrepay = document.getElementById('cartPrepayCheck').checked;
+        const isDropship = document.getElementById('deliveryTypeSwitch')?.checked || false;
 
-        const data = {
-            userId: state.userId, clientType: state.clientType,
-            items: items, total_base: base, total_final: Math.round(final),
-            discount_tier_pct: tierPct, discount_pay_pct: prepay?2:0,
-            is_prepay: prepay,
-            delivery_type: isDrop ? 'dropshipping' : 'standard',
-            shipping_method: state.deliveryMethod,
-            recipient_info: rcp
+        // Валидация для дропшиппинга
+        let recipientInfo = null;
+        if (isDropship) {
+            const name = document.getElementById('dsName').value.trim();
+            const phone = document.getElementById('dsPhone').value.trim();
+            const address = document.getElementById('dsAddress').value.trim();
+
+            if (!name || !phone || !address) {
+                alert("Для Дропшиппинга необходимо заполнить ФИО, Телефон и Адрес получателя!");
+                return;
+            }
+            recipientInfo = { name, phone, address };
+        }
+
+        let baseDealerTotal = 0; 
+        const orderItems = [];
+        Object.keys(state.cart).forEach(id => {
+            const p = state.db.find(x => x.id === id);
+            const price = getRawPrice(p);
+            const total = price * state.cart[id];
+            baseDealerTotal += total;
+            orderItems.push({ product_id: p.id, name: p.nm, qty: state.cart[id], price_per_unit: price, total: total });
+        });
+        
+        const res = DiscountSystem.calculate(baseDealerTotal, isPrepay, isPromo);
+        
+        const orderData = { 
+            userId: state.userId, 
+            clientType: state.clientType, 
+            items: orderItems, 
+            total_base: baseDealerTotal, 
+            total_final: Math.round(res.finalSum), 
+            discount_tier_pct: res.tierPct, 
+            discount_pay_pct: res.payPct, 
+            is_promo: isPromo, 
+            is_prepay: isPrepay,
+            delivery_type: isDropship ? 'dropshipping' : 'standard',
+            recipient_info: recipientInfo
         };
-        try { tg.sendData(JSON.stringify(data)); } catch(e) { alert("Sent!"); }
+        
+        try { tg.sendData(JSON.stringify(orderData)); } catch (e) { alert("Заказ отправлен (Тест). Откройте через телеграм!"); }
     }
+
+    function initCalculator() { const slider = document.getElementById('calcAmountSlider'); const check = document.getElementById('calcPrepayCheck'); slider.oninput = () => runSim(slider.value, check.checked); check.onchange = () => runSim(slider.value, check.checked); runSim(50, true); }
+    function runSim(val, prepay) { const millions = parseFloat(val); const sum = millions * 1000000; const res = DiscountSystem.calculate(sum, prepay, true); const totalPct = res.tierPct + res.payPct; const saved = sum - res.finalSum; document.getElementById('calcAmountDisplay').textContent = millions + ' млн'; document.getElementById('calcTotalBenefit').textContent = (saved/1000000).toFixed(2) + ' млн'; document.getElementById('calcTotalPercent').textContent = totalPct + '%'; document.getElementById('calcFinalPrice').textContent = (res.finalSum/1000000).toFixed(2) + ' млн'; document.getElementById('calcBaseLabel').innerText = res.tierPct + '%'; const baseWidth = (res.tierPct / 11) * 100; document.getElementById('calcBaseBar').style.width = baseWidth + '%'; const prepayRow = document.getElementById('calcPrepayRow'); const prepayBar = document.getElementById('calcPrepayBar'); if (prepay) { prepayRow.style.opacity = '1'; prepayBar.style.width = '100%'; } else { prepayRow.style.opacity = '0.4'; prepayBar.style.width = '0%'; } }
+    function openCalculator() { new bootstrap.Modal(document.getElementById('calcModal')).show(); }
+    function resetFilters() { document.getElementById('searchInput').value = ''; setMode('deli'); }
 </script>
 </body>
 </html>

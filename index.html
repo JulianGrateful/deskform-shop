@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>Deskform App | v3.5 Logic</title>
+    <title>Deskform App | v3.6 Logistics Added</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
@@ -121,6 +121,11 @@
         .final-block { margin-top: 15px; text-align: center; border-top: 1px dashed #e5e5ea; padding-top: 15px; }
         .final-price { font-size: 24px; font-weight: 800; color: var(--accent-green); }
 
+        /* LOGISTICS UI (ADDED IN V3.6) */
+        .delivery-option { display: flex; align-items: center; justify-content: space-between; padding: 12px; border: 1px solid #e5e5ea; border-radius: 12px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; }
+        .delivery-option.selected { border-color: var(--primary); background: rgba(0,122,255,0.05); }
+        .del-icon { font-size: 1.2rem; margin-right: 12px; }
+
         /* Loader */
         #loaderOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: center; }
 
@@ -215,6 +220,31 @@
                 <div id="cartItemsList"></div>
                 <div id="cartEmptyMsg" class="text-center py-5 text-muted">Корзина пуста</div>
                 
+                <div class="mb-3">
+                    <h6 class="small text-muted fw-bold text-uppercase mb-2 ms-1">Способ доставки</h6>
+                    
+                    <div class="delivery-option selected" id="optStandard" onclick="selectDelivery('standard')">
+                        <div class="d-flex align-items-center">
+                            <div class="del-icon">🚛</div>
+                            <div>
+                                <div class="fw-bold text-dark" style="font-size: 0.9rem;">Стандарт (Фура)</div>
+                                <div class="text-muted small" style="font-size: 0.75rem;">Консолидация груза</div>
+                            </div>
+                        </div>
+                        <i class="bi bi-check-circle-fill text-primary" id="iconStandard"></i>
+                    </div>
+
+                    <div class="delivery-option" id="optExpress" onclick="selectDelivery('express')">
+                         <div class="d-flex align-items-center">
+                            <div class="del-icon">🚕</div>
+                            <div>
+                                <div class="fw-bold text-dark" style="font-size: 0.9rem;">Экспресс (Пятак)</div>
+                                <div class="text-muted small" style="font-size: 0.75rem;">Оплата такси при получении</div>
+                            </div>
+                        </div>
+                        <i class="bi bi-circle text-muted" id="iconExpress"></i>
+                    </div>
+                </div>
                 <div class="p-3 mb-3 bg-white rounded-4 border">
                     <div class="form-check form-switch d-flex align-items-center justify-content-between ps-0 mb-0">
                         <label class="form-check-label fw-bold" for="deliveryTypeSwitch">📦 Дропшиппинг</label>
@@ -255,11 +285,6 @@
     const FILE_DB = 'price.xlsx';
     const FILE_REF = 'reference.xlsx';
 
-
-
-
-
-
     const DISCOUNT_PROFILES = {
         'new_partner': { 
             name: "Новый партнер", 
@@ -286,7 +311,8 @@
     let state = { 
         db: [], filtered: [], cart: {}, loaded: 0, currentProduct: null, currentBoxSize: 1, sort: 'price_asc',
         mode: 'deli', activeCat1: 'all', activeCat2: 'all', activeSub: 'all', activeBrand: 'all',
-        userId: 0, clientType: 'new_partner', currentProfile: DISCOUNT_PROFILES['new_partner']
+        userId: 0, clientType: 'new_partner', currentProfile: DISCOUNT_PROFILES['new_partner'],
+        deliveryMethod: 'standard' // standard | express
     };
 
     let lastTierPct = 0; let categoriesRef = {}; 
@@ -790,6 +816,27 @@
         document.getElementById('funnelFinal').innerText = Math.round(res.finalSum).toLocaleString() + ' сум';
     }
 
+    // --- LOGISTICS UI FUNCTIONS ---
+    function selectDelivery(method) {
+        state.deliveryMethod = method;
+        
+        // Reset Visuals
+        document.getElementById('optStandard').classList.remove('selected');
+        document.getElementById('iconStandard').className = 'bi bi-circle text-muted';
+        
+        document.getElementById('optExpress').classList.remove('selected');
+        document.getElementById('iconExpress').className = 'bi bi-circle text-muted';
+
+        // Apply Selection
+        if (method === 'standard') {
+            document.getElementById('optStandard').classList.add('selected');
+            document.getElementById('iconStandard').className = 'bi bi-check-circle-fill text-primary';
+        } else {
+            document.getElementById('optExpress').classList.add('selected');
+            document.getElementById('iconExpress').className = 'bi bi-check-circle-fill text-primary';
+        }
+    }
+
     // --- DROPSHIPPING LOGIC ---
     function toggleDropshipFields() {
         const isDropship = document.getElementById('deliveryTypeSwitch').checked;
@@ -845,6 +892,7 @@
             is_promo: isPromo, 
             is_prepay: isPrepay,
             delivery_type: isDropship ? 'dropshipping' : 'standard',
+            shipping_method: state.deliveryMethod,
             recipient_info: recipientInfo
         };
         

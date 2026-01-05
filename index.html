@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>Deskform App | v3.3 Full Logic</title>
+    <title>Deskform App | v3.5 Logic</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
@@ -148,7 +148,7 @@
                 <span class="brand-chip" id="userStatusChip">Статус: Загрузка...</span>
             </div>
             <div class="d-flex align-items-center gap-2">
-                <button class="btn btn-sm btn-primary rounded-pill px-3" onclick="openCalculator()">
+                <button class="btn btn-sm btn-primary rounded-pill px-3" id="btnCalc" onclick="openCalculator()">
                     <i class="bi bi-calculator"></i>
                 </button>
                 <button class="btn btn-sm btn-light rounded-pill px-3" onclick="resetFilters()">Сброс</button>
@@ -206,7 +206,39 @@
 </div>
 
 <div class="modal fade" id="productModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-body p-4"><button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button><div class="modal-product-img"><img id="modalImg" src="" alt="" data-id=""></div><h5 class="fw-bold mb-1" id="modalTitle">Название</h5><div class="text-muted small mb-3">Артикул: <span id="modalArt" class="fw-bold text-dark"></span></div><div class="d-flex justify-content-between align-items-center mb-1"><span class="text-muted small">Цена в Ташкенте:</span><span class="text-decoration-line-through text-muted" id="modalRetailPrice">0 сум</span></div><div class="d-flex justify-content-between align-items-center mb-2"><span class="fw-bold">Ваша цена:</span><span class="fs-3 fw-bold" style="color:var(--primary)" id="modalDealerPrice">0 сум</span></div><div class="quantity-control"><div class="d-flex justify-content-center mb-3 mt-2"><div class="btn-group mode-switch" role="group"><input type="radio" class="btn-check" name="qtyMode" id="modeUnit" onchange="updateCalc()"><label class="btn" for="modeUnit">Штуки</label><input type="radio" class="btn-check" name="qtyMode" id="modeBox" onchange="updateCalc()"><label class="btn" for="modeBox">Коробка <span id="boxLabel" class="badge bg-secondary ms-1" style="font-weight:400"></span></label></div></div><div class="d-flex align-items-center justify-content-between mt-3"><div class="btn-qty" onclick="adjustQty(-1)"><i class="bi bi-dash"></i></div><input type="number" id="qtyInput" class="big-input mx-2" style="width: 100px" value="0" min="0" oninput="updateCalc()" onfocus="this.select()"><div class="btn-qty" onclick="adjustQty(1)"><i class="bi bi-plus"></i></div></div><div class="text-center text-muted small mt-2">Сумма: <span id="calcTotalPrice" class="fw-bold text-dark">0</span> сум</div></div><button class="btn btn-primary w-100 py-3 mt-3 rounded-4 fw-bold fs-6" onclick="confirmAddToCart()">Добавить в заказ</button></div></div></div></div>
-<div class="modal fade" id="cartModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-dialog-scrollable"><div class="modal-content" style="background: #f9fafb;"><div class="modal-header border-0"><h5 class="modal-title fw-bold ms-2">Ваш заказ</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-3 pt-0"><div id="cartItemsList"></div><div id="cartEmptyMsg" class="text-center py-5 text-muted">Корзина пуста</div><div id="cartFunnel" class="funnel-container d-none"><div class="text-center fw-bold mb-3 small text-uppercase text-muted">Расчет стоимости</div><div class="funnel-row f-step-1"><span class="f-label">Розничная цена</span><span class="f-val" id="funnelRetail">0</span></div><div class="funnel-row f-step-2"><span class="f-label">Базовая цена дилера</span><div><span class="f-chip green">-15%</span><span class="f-val" id="funnelBase">0</span></div></div><div class="funnel-row f-step-3"><span class="f-label">Объем закупа <span id="volLabel" class="text-muted small fw-normal"></span></span><div><span class="f-chip gray" id="chipVolPct">0%</span><span class="f-val" id="funnelVol">0</span></div></div><div class="funnel-row f-step-4"><span class="f-label">Условия оплаты</span><div><div class="d-flex justify-content-end mb-1"><div class="form-check form-switch me-2"><input class="form-check-input" type="checkbox" id="cartPromoCheck" onchange="updateCartFunnel()"><label class="form-check-label small" for="cartPromoCheck">Акция</label></div><div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="cartPrepayCheck" onchange="updateCartFunnel()"><label class="form-check-label small" for="cartPrepayCheck">Предопл.</label></div></div><div class="text-end"><span class="f-chip gray" id="chipPayPct">0%</span></div></div></div><div class="final-block"><span class="text-muted small">Окончательная цена</span><div class="final-price" id="funnelFinal">0 сум</div></div></div></div><div class="modal-footer justify-content-center bg-white border-top-0 rounded-bottom-4"><button class="btn btn-primary rounded-pill px-5 py-3 fw-bold w-100" onclick="submitOrder()"><i class="bi bi-check-circle-fill me-2"></i>Оформить заказ</button></div></div></div></div>
+
+<div class="modal fade" id="cartModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content" style="background: #f9fafb;">
+            <div class="modal-header border-0"><h5 class="modal-title fw-bold ms-2">Ваш заказ</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body p-3 pt-0">
+                <div id="cartItemsList"></div>
+                <div id="cartEmptyMsg" class="text-center py-5 text-muted">Корзина пуста</div>
+                
+                <div class="p-3 mb-3 bg-white rounded-4 border">
+                    <div class="form-check form-switch d-flex align-items-center justify-content-between ps-0 mb-0">
+                        <label class="form-check-label fw-bold" for="deliveryTypeSwitch">📦 Дропшиппинг</label>
+                        <input class="form-check-input ms-auto" type="checkbox" id="deliveryTypeSwitch" style="width: 40px; height: 20px;" onchange="toggleDropshipFields()">
+                    </div>
+                    <div id="dropshipFields" class="mt-3 d-none border-top pt-3">
+                        <p class="small text-muted mb-2">Данные вашего клиента:</p>
+                        <input type="text" id="dsName" class="form-control mb-2 form-control-sm" placeholder="ФИО Получателя">
+                        <input type="tel" id="dsPhone" class="form-control mb-2 form-control-sm" placeholder="Телефон (+998...)">
+                        <textarea id="dsAddress" class="form-control form-control-sm" rows="2" placeholder="Адрес доставки"></textarea>
+                    </div>
+                </div>
+
+                <div id="cartFunnel" class="funnel-container d-none">
+                    <div class="text-center fw-bold mb-3 small text-uppercase text-muted">Расчет стоимости</div>
+                    <div class="funnel-row f-step-1"><span class="f-label">Розничная цена</span><span class="f-val" id="funnelRetail">0</span></div>
+                    <div class="funnel-row f-step-2"><span class="f-label">Базовая цена дилера</span><div><span class="f-chip green">-15%</span><span class="f-val" id="funnelBase">0</span></div></div>
+                    
+                    <div class="funnel-row f-step-3" id="funnelRowVolume">
+                        <span class="f-label">Объем закупа <span id="volLabel" class="text-muted small fw-normal"></span></span>
+                        <div><span class="f-chip gray" id="chipVolPct">0%</span><span class="f-val" id="funnelVol">0</span></div>
+                    </div>
+                    
+                    <div class="funnel-row f-step-4"><span class="f-label">Условия оплаты</span><div><div class="d-flex justify-content-end mb-1"><div class="form-check form-switch me-2"><input class="form-check-input" type="checkbox" id="cartPromoCheck" onchange="updateCartFunnel()"><label class="form-check-label small" for="cartPromoCheck">Акция</label></div><div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="cartPrepayCheck" onchange="updateCartFunnel()"><label class="form-check-label small" for="cartPrepayCheck">Предопл.</label></div></div><div class="text-end"><span class="f-chip gray" id="chipPayPct">0%</span></div></div></div><div class="final-block"><span class="text-muted small">Окончательная цена</span><div class="final-price" id="funnelFinal">0 сум</div></div></div></div><div class="modal-footer justify-content-center bg-white border-top-0 rounded-bottom-4"><button class="btn btn-primary rounded-pill px-5 py-3 fw-bold w-100" onclick="submitOrder()"><i class="bi bi-check-circle-fill me-2"></i>Оформить заказ</button></div></div></div></div>
 <div class="modal fade" id="calcModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-body px-4 pb-4 pt-4"><button type="button" class="btn-close position-absolute end-0 top-0 m-3" data-bs-dismiss="modal"></button><div class="mb-4"><label class="text-muted small text-uppercase fw-bold mb-2">Сумма закупа</label><div class="fw-bold fs-1 text-center mb-1" id="calcAmountDisplay">50 млн</div><input type="range" class="ios-slider" id="calcAmountSlider" min="5" max="200" step="1" value="50"><div class="d-flex justify-content-between text-muted" style="font-size: 0.7rem;"><span>5 млн</span><span>200+ млн</span></div></div><div class="bg-light p-3 rounded-4 d-flex justify-content-between align-items-center mb-4"><div><div class="fw-bold">Предоплата</div><div class="text-muted small">Бонус +2% к скидке</div></div><div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="calcPrepayCheck" checked style="width: 50px; height: 26px;"></div></div><div class="bg-light p-3 rounded-4"><div class="text-center mb-3"><small class="text-muted text-uppercase fw-bold">Ваша экономия</small><div class="fw-bold fs-1 text-success" id="calcTotalBenefit">0</div><div class="text-muted small" id="calcTotalPercent">скидка 0%</div></div><div class="row g-2"><div class="col-12"><div class="d-flex justify-content-between small mb-1"><span>Скидка от объема</span> <span id="calcBaseLabel">0%</span></div><div class="calc-bar-bg"><div id="calcBaseBar" class="calc-bar-fill" style="background-color: var(--primary); width:0%"></div></div></div><div class="col-12 mt-3"><div class="d-flex justify-content-between small mb-1"><span>Акция</span> <span>+4%</span></div><div class="calc-bar-bg"><div class="calc-bar-fill" style="background-color: var(--accent-purple); width:100%"></div></div></div><div class="col-12 mt-3" id="calcPrepayRow"><div class="d-flex justify-content-between small mb-1"><span>За предоплату</span> <span>+2%</span></div><div class="calc-bar-bg"><div id="calcPrepayBar" class="calc-bar-fill" style="background-color: var(--accent-green); width:100%"></div></div></div></div></div><div class="d-flex justify-content-between align-items-end mt-4 pt-3 border-top"><span class="text-muted">Итого к оплате:</span><span class="fs-3 fw-bold" id="calcFinalPrice">0 млн</span></div></div></div></div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -223,11 +255,6 @@
     const FILE_DB = 'price.xlsx';
     const FILE_REF = 'reference.xlsx';
 
-    // === ЛОГИКА СКИДОК ===
-    // 1. "new" (Новый/Возвращенный) = База + Шкала скидок (2-11%) + Предоплата
-    // 2. "active" (Действующий) = ТОЛЬКО База + Предоплата (Шкала отключена)
-    // 3. "market" (Рынок) = ТОЛЬКО База + Предоплата (Шкала отключена)
-    
     const DISCOUNT_PROFILES = {
         'new_partner': { 
             name: "Новый партнер", 
@@ -254,7 +281,7 @@
     let state = { 
         db: [], filtered: [], cart: {}, loaded: 0, currentProduct: null, currentBoxSize: 1, sort: 'price_asc',
         mode: 'deli', activeCat1: 'all', activeCat2: 'all', activeSub: 'all', activeBrand: 'all',
-        userId: 0, clientType: 'new', currentProfile: DISCOUNT_PROFILES['new']
+        userId: 0, clientType: 'new_partner', currentProfile: DISCOUNT_PROFILES['new_partner']
     };
     
     let lastTierPct = 0; let categoriesRef = {}; 
@@ -283,12 +310,26 @@
     function initWebAppParams() {
         const urlParams = new URLSearchParams(window.location.search);
         state.userId = urlParams.get('userId') || tg.initDataUnsafe?.user?.id || 0;
-        const typeParam = urlParams.get('clientType') || 'new';
+        
+        // По умолчанию используем new_partner
+        const typeParam = urlParams.get('clientType') || 'new_partner';
+        
         if (DISCOUNT_PROFILES[typeParam]) {
             state.clientType = typeParam;
             state.currentProfile = DISCOUNT_PROFILES[typeParam];
+        } else {
+            // Если пришел неизвестный тип, фолбэк на new_partner
+            state.clientType = 'new_partner';
+            state.currentProfile = DISCOUNT_PROFILES['new_partner'];
         }
+        
         document.getElementById('userStatusChip').textContent = `Статус: ${state.currentProfile.name}`;
+
+        // == СКРЫВАЕМ КАЛЬКУЛЯТОР ДЛЯ НЕ-НОВЫХ ==
+        if (state.clientType !== 'new_partner') {
+            const btnCalc = document.getElementById('btnCalc');
+            if (btnCalc) btnCalc.style.display = 'none';
+        }
     }
 
     async function initDataLoading() {
@@ -332,7 +373,7 @@
         }
     }
 
-  async function fetchDatabase() {
+    async function fetchDatabase() {
         const response = await fetch(FILE_DB);
         if (!response.ok) throw new Error("База не найдена");
         
@@ -349,7 +390,6 @@
         if(head === -1) throw new Error("Неверный формат базы (нет заголовка 'Артикул')");
 
         // 2. АВТО-ПОИСК КОЛОНОК (SMART MAPPING)
-        // По умолчанию ставим как было (на всякий случай)
         let colArt = 0; // A
         let colBrand = 1; // B
         let colName = 2; // C
@@ -358,9 +398,7 @@
         let colPromo = 6; // G
         let colPack = 9; // J
         
-        // Пробегаем по заголовкам и ищем ключевые слова
         const headers = json[head].map(h => String(h || '').toLowerCase());
-        
         headers.forEach((h, idx) => {
             if (h.includes('артикул')) colArt = idx;
             else if (h.includes('бренд') || h.includes('brand')) colBrand = idx;
@@ -389,7 +427,7 @@
                     nm: r[colName], 
                     pp: clean(r[colRetail]), 
                     pd: clean(r[colDealer]), 
-                    ps: 0, // Спеццену пока отключаем, чтобы не путала
+                    ps: 0, 
                     pr: r[colPromo], 
                     pk: r[colPack], 
                     c1: ref.c1, c2: ref.c2, sub: ref.s 
@@ -430,6 +468,9 @@
         getTierPercent: function(sum) {
             const tiers = state.currentProfile.tiers;
             const percents = state.currentProfile.percents;
+            // Если шкала отключена (0)
+            if (tiers.length === 1 && tiers[0] === 0) return 0;
+
             let millions = sum / 1000000;
             let pct = 0;
             for (let i = 0; i < tiers.length; i++) {
@@ -441,6 +482,12 @@
         getRangeInfo: function(sum) {
             const tiers = state.currentProfile.tiers;
             const percents = state.currentProfile.percents;
+            
+            // Если шкала отключена
+            if (tiers.length === 1 && tiers[0] === 0) {
+                return { hasTiers: false };
+            }
+
             let millions = sum / 1000000;
             let prev = 0; let next = tiers[0]; let nextPct = percents[0];
             for (let i = 0; i < tiers.length; i++) {
@@ -449,7 +496,7 @@
                     if (i + 1 < tiers.length) { next = tiers[i+1]; nextPct = percents[i+1]; } else { next = tiers[i]; nextPct = percents[i]; }
                 } else { next = tiers[i]; nextPct = percents[i]; break; }
             }
-            return { prevLimit: prev * 1000000, nextLimit: next * 1000000, nextPct: nextPct, isMax: millions >= tiers[tiers.length - 1] };
+            return { hasTiers: true, prevLimit: prev * 1000000, nextLimit: next * 1000000, nextPct: nextPct, isMax: millions >= tiers[tiers.length - 1] };
         },
         calculate: function(dealerSum, isPrepay, isPromo) {
             const tierPct = this.getTierPercent(dealerSum);
@@ -657,18 +704,51 @@
     function showLevelUpToast(percent) { const toast = document.createElement('div'); toast.className = 'level-up-toast'; toast.innerHTML = `<i class="bi bi-stars"></i> Новый уровень! Скидка ${percent}%`; document.getElementById('toastContainer').appendChild(toast); void toast.offsetWidth; toast.classList.add('visible'); setTimeout(() => { toast.classList.remove('visible'); setTimeout(() => toast.remove(), 500); }, 3000); }
     
     function updateGlobalState() {
-        const count = Object.keys(state.cart).length; Object.keys(state.cart).forEach(id => { const badge = document.getElementById(`badge-${id}`); if(badge) { badge.textContent = state.cart[id]; badge.style.display = state.cart[id] > 0 ? 'flex' : 'none'; } });
-        let baseTotal = 0; Object.keys(state.cart).forEach(id => { const p = state.db.find(x => x.id === id); if(p) baseTotal += getRawPrice(p) * state.cart[id]; });
-        const res = DiscountSystem.calculate(baseTotal, false, false); document.getElementById('footerBaseSum').textContent = baseTotal.toLocaleString() + ' сум'; document.getElementById('footerBenefit').textContent = Math.round(res.totalBenefit).toLocaleString() + ' сум';
-        if (res.tierPct > lastTierPct && lastTierPct >= 0) showLevelUpToast(res.tierPct); lastTierPct = res.tierPct;
-        const footerFill = document.getElementById('footerFill'); const gameText = document.getElementById('footerGameText'); const rangeInfo = DiscountSystem.getRangeInfo(baseTotal);
-        if(baseTotal > 0) { 
-            if(rangeInfo.isMax) { footerFill.style.width = '100%'; gameText.innerHTML = `Максимальная скидка ${res.tierPct}% получена!`; } else { 
-                const tierRange = rangeInfo.nextLimit - rangeInfo.prevLimit; const progressInTier = baseTotal - rangeInfo.prevLimit; let fillPct = (progressInTier / tierRange) * 100; if(fillPct < 5) fillPct = 5; if(fillPct > 100) fillPct = 100; 
-                footerFill.style.width = fillPct + '%'; const needed = (rangeInfo.nextLimit - baseTotal) / 1000000; gameText.innerHTML = `Ещё ${needed.toFixed(1)} млн до скидки ${rangeInfo.nextPct}%`; 
+        const count = Object.keys(state.cart).length; 
+        Object.keys(state.cart).forEach(id => { const badge = document.getElementById(`badge-${id}`); if(badge) { badge.textContent = state.cart[id]; badge.style.display = state.cart[id] > 0 ? 'flex' : 'none'; } });
+        
+        let baseTotal = 0; 
+        Object.keys(state.cart).forEach(id => { const p = state.db.find(x => x.id === id); if(p) baseTotal += getRawPrice(p) * state.cart[id]; });
+        
+        const res = DiscountSystem.calculate(baseTotal, false, false); 
+        document.getElementById('footerBaseSum').textContent = baseTotal.toLocaleString() + ' сум'; 
+        document.getElementById('footerBenefit').textContent = Math.round(res.totalBenefit).toLocaleString() + ' сум';
+        
+        // --- УМНЫЙ ФУТЕР (Updated) ---
+        const footerFill = document.getElementById('footerFill'); 
+        const gameText = document.getElementById('footerGameText'); 
+        const rangeInfo = DiscountSystem.getRangeInfo(baseTotal);
+        
+        if (res.tierPct > lastTierPct && lastTierPct >= 0) showLevelUpToast(res.tierPct); 
+        lastTierPct = res.tierPct;
+
+        if (baseTotal > 0) { 
+            if (!rangeInfo.hasTiers) {
+                // ШКАЛА ОТКЛЮЧЕНА (Действующий партнер)
+                footerFill.style.width = '100%'; 
+                gameText.innerHTML = `Персональная цена активна`; 
+            } else if (rangeInfo.isMax) { 
+                // Максимум достигнут
+                footerFill.style.width = '100%'; 
+                gameText.innerHTML = `Максимальная скидка ${res.tierPct}% получена!`; 
+            } else { 
+                // Процесс набора скидки
+                const tierRange = rangeInfo.nextLimit - rangeInfo.prevLimit; 
+                const progressInTier = baseTotal - rangeInfo.prevLimit; 
+                let fillPct = (progressInTier / tierRange) * 100; 
+                if(fillPct < 5) fillPct = 5; if(fillPct > 100) fillPct = 100; 
+                footerFill.style.width = fillPct + '%'; 
+                const needed = (rangeInfo.nextLimit - baseTotal) / 1000000; 
+                gameText.innerHTML = `Ещё ${needed.toFixed(1)} млн до скидки ${rangeInfo.nextPct}%`; 
             } 
-        } else { footerFill.style.width = '0%'; gameText.innerHTML = 'Сделайте заказ для скидки'; }
-        const badge = document.getElementById('cartCountBadge'); if(count > 0) { badge.textContent = count; badge.style.display = 'inline-block'; } else badge.style.display = 'none'; updateCartFunnel();
+        } else { 
+            footerFill.style.width = '0%'; 
+            gameText.innerHTML = 'Сделайте заказ'; 
+        }
+
+        const badge = document.getElementById('cartCountBadge'); 
+        if(count > 0) { badge.textContent = count; badge.style.display = 'inline-block'; } else badge.style.display = 'none'; 
+        updateCartFunnel();
     }
     
     function updateCartItemQty(id, delta) { if(!state.cart[id]) return; state.cart[id] += delta; if(state.cart[id] <= 0) delete state.cart[id]; updateGlobalState(); }
@@ -677,16 +757,65 @@
         const list = document.getElementById('cartItemsList'); const funnel = document.getElementById('cartFunnel'); const ids = Object.keys(state.cart);
         if(!ids.length) { list.innerHTML = ''; document.getElementById('cartEmptyMsg').classList.remove('d-none'); funnel.classList.add('d-none'); return; }
         document.getElementById('cartEmptyMsg').classList.add('d-none'); funnel.classList.remove('d-none'); list.innerHTML = '';
-        let retailTotal = 0; let baseDealerTotal = 0; ids.forEach((id, idx) => { const p = state.db.find(x => x.id === id); const qty = state.cart[id]; const price = getRawPrice(p); let retail = p.pp > 0 ? p.pp : Math.round(price / 0.85); retailTotal += retail * qty; baseDealerTotal += price * qty; const div = document.createElement('div'); div.className = 'cart-item'; div.innerHTML = `<div class="cart-item-head"><span class="cart-index">${idx+1}.</span><div class="cart-item-title">${p.nm}</div></div><div class="cart-item-body"><div class="qty-wrapper"><span class="qty-label">Количество:</span><div class="cart-controls"><button class="ctrl-btn" onclick="updateCartItemQty('${id}', -1)"><i class="bi bi-dash"></i></button><div class="ctrl-val">${qty}</div><button class="ctrl-btn" onclick="updateCartItemQty('${id}', 1)"><i class="bi bi-plus"></i></button></div><span class="price-per-unit">x ${price.toLocaleString()}</span></div><div class="cart-item-total"><div class="total-price-val">${(price*qty).toLocaleString()}</div></div><button class="del-btn" onclick="updateCartItemQty('${id}', -${qty})"><i class="bi bi-trash"></i></button></div>`; list.appendChild(div); });
-        const isPromo = document.getElementById('cartPromoCheck').checked; const isPrepay = document.getElementById('cartPrepayCheck').checked; const res = DiscountSystem.calculate(baseDealerTotal, isPrepay, isPromo);
-        document.getElementById('funnelRetail').innerText = Math.round(retailTotal).toLocaleString(); document.getElementById('funnelBase').innerText = Math.round(baseDealerTotal).toLocaleString(); document.getElementById('funnelVol').innerText = Math.round(res.sumAfterTier).toLocaleString(); document.getElementById('chipVolPct').innerText = `-${res.tierPct}%`; document.getElementById('chipPayPct').innerText = res.payPct > 0 ? `-${res.payPct}%` : '0%'; document.getElementById('chipPayPct').className = res.payPct > 0 ? 'f-chip green' : 'f-chip gray'; document.getElementById('funnelFinal').innerText = Math.round(res.finalSum).toLocaleString() + ' сум';
+        
+        let retailTotal = 0; let baseDealerTotal = 0; 
+        ids.forEach((id, idx) => { const p = state.db.find(x => x.id === id); const qty = state.cart[id]; const price = getRawPrice(p); let retail = p.pp > 0 ? p.pp : Math.round(price / 0.85); retailTotal += retail * qty; baseDealerTotal += price * qty; const div = document.createElement('div'); div.className = 'cart-item'; div.innerHTML = `<div class="cart-item-head"><span class="cart-index">${idx+1}.</span><div class="cart-item-title">${p.nm}</div></div><div class="cart-item-body"><div class="qty-wrapper"><span class="qty-label">Количество:</span><div class="cart-controls"><button class="ctrl-btn" onclick="updateCartItemQty('${id}', -1)"><i class="bi bi-dash"></i></button><div class="ctrl-val">${qty}</div><button class="ctrl-btn" onclick="updateCartItemQty('${id}', 1)"><i class="bi bi-plus"></i></button></div><span class="price-per-unit">x ${price.toLocaleString()}</span></div><div class="cart-item-total"><div class="total-price-val">${(price*qty).toLocaleString()}</div></div><button class="del-btn" onclick="updateCartItemQty('${id}', -${qty})"><i class="bi bi-trash"></i></button></div>`; list.appendChild(div); });
+        
+        const isPromo = document.getElementById('cartPromoCheck').checked; const isPrepay = document.getElementById('cartPrepayCheck').checked; 
+        const res = DiscountSystem.calculate(baseDealerTotal, isPrepay, isPromo);
+        
+        document.getElementById('funnelRetail').innerText = Math.round(retailTotal).toLocaleString(); 
+        document.getElementById('funnelBase').innerText = Math.round(baseDealerTotal).toLocaleString(); 
+        
+        // --- СКРЫТИЕ СТРОКИ ОБЪЕМА ---
+        const rangeInfo = DiscountSystem.getRangeInfo(baseDealerTotal);
+        if (rangeInfo.hasTiers) {
+            document.getElementById('funnelRowVolume').classList.remove('d-none');
+            document.getElementById('funnelVol').innerText = Math.round(res.sumAfterTier).toLocaleString(); 
+            document.getElementById('chipVolPct').innerText = `-${res.tierPct}%`; 
+        } else {
+            document.getElementById('funnelRowVolume').classList.add('d-none');
+        }
+        
+        document.getElementById('chipPayPct').innerText = res.payPct > 0 ? `-${res.payPct}%` : '0%'; 
+        document.getElementById('chipPayPct').className = res.payPct > 0 ? 'f-chip green' : 'f-chip gray'; 
+        document.getElementById('funnelFinal').innerText = Math.round(res.finalSum).toLocaleString() + ' сум';
+    }
+
+    // --- DROPSHIPPING LOGIC ---
+    function toggleDropshipFields() {
+        const isDropship = document.getElementById('deliveryTypeSwitch').checked;
+        const fields = document.getElementById('dropshipFields');
+        if (isDropship) {
+            fields.classList.remove('d-none');
+        } else {
+            fields.classList.add('d-none');
+        }
     }
 
     function submitOrder() {
         if(!Object.keys(state.cart).length) return;
+        
         const isPromo = document.getElementById('cartPromoCheck').checked;
         const isPrepay = document.getElementById('cartPrepayCheck').checked;
-        let baseDealerTotal = 0; const orderItems = [];
+        const isDropship = document.getElementById('deliveryTypeSwitch')?.checked || false;
+
+        // Валидация для дропшиппинга
+        let recipientInfo = null;
+        if (isDropship) {
+            const name = document.getElementById('dsName').value.trim();
+            const phone = document.getElementById('dsPhone').value.trim();
+            const address = document.getElementById('dsAddress').value.trim();
+
+            if (!name || !phone || !address) {
+                alert("Для Дропшиппинга необходимо заполнить ФИО, Телефон и Адрес получателя!");
+                return;
+            }
+            recipientInfo = { name, phone, address };
+        }
+
+        let baseDealerTotal = 0; 
+        const orderItems = [];
         Object.keys(state.cart).forEach(id => {
             const p = state.db.find(x => x.id === id);
             const price = getRawPrice(p);
@@ -694,8 +823,23 @@
             baseDealerTotal += total;
             orderItems.push({ product_id: p.id, name: p.nm, qty: state.cart[id], price_per_unit: price, total: total });
         });
+        
         const res = DiscountSystem.calculate(baseDealerTotal, isPrepay, isPromo);
-        const orderData = { userId: state.userId, clientType: state.clientType, items: orderItems, total_base: baseDealerTotal, total_final: Math.round(res.finalSum), discount_tier_pct: res.tierPct, discount_pay_pct: res.payPct, is_promo: isPromo, is_prepay: isPrepay };
+        
+        const orderData = { 
+            userId: state.userId, 
+            clientType: state.clientType, 
+            items: orderItems, 
+            total_base: baseDealerTotal, 
+            total_final: Math.round(res.finalSum), 
+            discount_tier_pct: res.tierPct, 
+            discount_pay_pct: res.payPct, 
+            is_promo: isPromo, 
+            is_prepay: isPrepay,
+            delivery_type: isDropship ? 'dropshipping' : 'standard',
+            recipient_info: recipientInfo
+        };
+        
         try { tg.sendData(JSON.stringify(orderData)); } catch (e) { alert("Заказ отправлен (Тест). Откройте через телеграм!"); }
     }
 
@@ -706,6 +850,3 @@
 </script>
 </body>
 </html>
-
-
-

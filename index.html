@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>Deskform App | v3.6 Logistics Added</title>
+    <title>Deskform App | v6.1 Skeleton Loader</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
@@ -97,6 +97,7 @@
         .big-input:focus { background: #f2f2f7; outline: none; }
         .btn-qty { border: 1px solid #e5e5ea; border-radius: 12px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.5rem; background: white; }
 
+        /* Cart & Funnel */
         .cart-item { background: white; border-radius: 16px; padding: 12px; margin-bottom: 10px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
         .cart-item-head { display: flex; align-items: flex-start; margin-bottom: 12px; }
         .cart-index { color: var(--text-sec); font-size: 0.8rem; margin-right: 6px; font-weight: 700; margin-top: 2px; }
@@ -121,13 +122,23 @@
         .final-block { margin-top: 15px; text-align: center; border-top: 1px dashed #e5e5ea; padding-top: 15px; }
         .final-price { font-size: 24px; font-weight: 800; color: var(--accent-green); }
 
-        /* LOGISTICS UI (ADDED IN V3.6) */
+        /* LOGISTICS UI */
         .delivery-option { display: flex; align-items: center; justify-content: space-between; padding: 12px; border: 1px solid #e5e5ea; border-radius: 12px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; }
         .delivery-option.selected { border-color: var(--primary); background: rgba(0,122,255,0.05); }
         .del-icon { font-size: 1.2rem; margin-right: 12px; }
 
-        /* Loader */
-        #loaderOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        /* SKELETON & LOADER STYLES */
+        @keyframes shimmer { 0% { background-position: -1000px 0; } 100% { background-position: 1000px 0; } }
+        .skeleton { animation: shimmer 2s infinite linear; background: linear-gradient(to right, #eff1f3 4%, #e2e2e2 25%, #eff1f3 36%); background-size: 1000px 100%; }
+        .skeleton-card { height: 320px; border-radius: 20px; margin-bottom: 0; background: #fff; padding: 10px; }
+        .sk-img { height: 180px; width: 100%; border-radius: 15px; margin-bottom: 10px; }
+        .sk-line { height: 14px; border-radius: 6px; margin-bottom: 8px; }
+        .sk-line.short { width: 60%; }
+
+        .loader-bar-container { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); width: 200px; text-align: center; z-index: 2000; display: none; }
+        .loader-text { font-size: 12px; font-weight: 700; color: var(--text-sec); margin-bottom: 6px; }
+        .progress { height: 6px; border-radius: 3px; background-color: #e5e5ea; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .progress-bar { background-color: var(--primary); transition: width 0.1s; }
 
         /* Calc Styles */
         .calc-bar-bg { width: 100%; height: 8px; background: #e5e5ea; border-radius: 4px; margin-top: 4px; overflow: hidden; }
@@ -138,12 +149,12 @@
 </head>
 <body>
 
-<div id="loaderOverlay">
-    <div class="spinner-border text-primary mb-3"></div>
-    <div class="fw-bold text-secondary">Загрузка...</div>
-</div>
-
 <div id="toastContainer"></div>
+
+<div class="loader-bar-container" id="realLoader">
+    <div class="loader-text" id="loaderText">Загрузка базы... 0%</div>
+    <div class="progress"><div class="progress-bar" id="loaderProgress" style="width: 0%"></div></div>
+</div>
 
 <div class="header-wrapper" id="mainHeader">
     <div class="container">
@@ -182,7 +193,10 @@
 </div>
 
 <div class="container container-main">
-    <div id="productsGrid" class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3"></div>
+    <div id="skeletonGrid" class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
+        </div>
+
+    <div id="productsGrid" class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3 d-none"></div>
     <div id="scrollSentinel" class="text-center py-4 opacity-0"><div class="spinner-grow spinner-grow-sm text-secondary"></div></div>
 
     <div id="emptyState" class="text-center py-5 d-none">
@@ -191,7 +205,7 @@
     </div>
     <div id="noDbState" class="text-center py-5 d-none">
         <h4 class="mt-3">База пуста</h4>
-        <p class="text-muted small">Не удалось загрузить файлы. Проверьте их имена на GitHub.</p>
+        <p class="text-muted small">Не удалось загрузить файлы.</p>
     </div>
 </div>
 
@@ -200,7 +214,7 @@
     <div class="footer-grid">
         <div></div> 
         <div class="footer-center">
-            <div class="f-game-text" id="footerGameText">Загрузка...</div>
+            <div class="f-game-text" id="footerGameText">Ожидание...</div>
             <div><span class="f-label-main">Товаров на:</span> <span class="f-val-main" id="footerBaseSum">0</span></div>
             <div class="f-benefit">Выгода: <span id="footerBenefit">0</span></div>
         </div>
@@ -281,7 +295,6 @@
     const PRIORITY_BRANDS = ["Linc", "ГАММА", "Claro", "Berlingo", "ALTA", "COLOP", "BG", "Svetocopy", "Снегурочка"];
     const PRIORITY_OFFICE_CATS = [ "Степлеры, антистеплеры, скобы", "Дыроколы", "Ножницы и канцелярские ножи", "Доски", "Калькуляторы", "Органайзеры, настольные наборы и лотки", "Подставки и стаканы", "Зажимы" ];
 
-    // === ВАЖНО: ИМЕНА ФАЙЛОВ ===
     const FILE_DB = 'price.xlsx';
     const FILE_REF = 'reference.xlsx';
 
@@ -293,18 +306,13 @@
         },
         'active': { 
             name: "Действующий партнер", 
-            tiers: [0],     // 0 = Шкала не работает
-            percents: [0]   // 0% за объем
+            tiers: [0], percents: [0] 
         },
         'market_urikzar': { 
-            name: "Рынок Урикзар", 
-            tiers: [0], 
-            percents: [0] 
+            name: "Рынок Урикзар", tiers: [0], percents: [0] 
         },
         'market_solnechny': { 
-            name: "Рынок Солнечный", 
-            tiers: [0], 
-            percents: [0] 
+            name: "Рынок Солнечный", tiers: [0], percents: [0] 
         }
     };
 
@@ -312,17 +320,15 @@
         db: [], filtered: [], cart: {}, loaded: 0, currentProduct: null, currentBoxSize: 1, sort: 'price_asc',
         mode: 'deli', activeCat1: 'all', activeCat2: 'all', activeSub: 'all', activeBrand: 'all',
         userId: 0, clientType: 'new_partner', currentProfile: DISCOUNT_PROFILES['new_partner'],
-        deliveryMethod: 'standard' // standard | express
+        deliveryMethod: 'standard'
     };
 
     let lastTierPct = 0; let categoriesRef = {}; 
 
-    // --- MAIN LOGIC ---
     document.addEventListener('DOMContentLoaded', () => {
         initWebAppParams();
-
-        // Auto-load Logic
-        initDataLoading();
+        renderSkeleton(); // START SKELETON
+        initDataLoading(); // START FETCH
 
         let lastScrollTop = 0; const header = document.getElementById('mainHeader'); const footer = document.getElementById('mainFooter');
         window.addEventListener('scroll', () => {
@@ -341,53 +347,120 @@
     function initWebAppParams() {
         const urlParams = new URLSearchParams(window.location.search);
         state.userId = urlParams.get('userId') || tg.initDataUnsafe?.user?.id || 0;
-        
-        // По умолчанию используем new_partner
         const typeParam = urlParams.get('clientType') || 'new_partner';
         
         if (DISCOUNT_PROFILES[typeParam]) {
             state.clientType = typeParam;
             state.currentProfile = DISCOUNT_PROFILES[typeParam];
         } else {
-            // Если пришел неизвестный тип, фолбэк на new_partner
             state.clientType = 'new_partner';
             state.currentProfile = DISCOUNT_PROFILES['new_partner'];
         }
         
         document.getElementById('userStatusChip').textContent = `Статус: ${state.currentProfile.name}`;
-
-        // == СКРЫВАЕМ КАЛЬКУЛЯТОР ДЛЯ НЕ-НОВЫХ ==
         if (state.clientType !== 'new_partner') {
             const btnCalc = document.getElementById('btnCalc');
             if (btnCalc) btnCalc.style.display = 'none';
         }
     }
 
-    async function initDataLoading() {
-        document.getElementById('footerGameText').innerText = "1/2 Загрузка категорий...";
+    // --- SKELETON RENDER ---
+    function renderSkeleton() {
+        const grid = document.getElementById('skeletonGrid');
+        grid.innerHTML = '';
+        // Генерируем 8 пустых мерцающих карточек
+        for(let i=0; i<8; i++) {
+            const el = document.createElement('div'); el.className = 'col';
+            el.innerHTML = `
+                <div class="product-card skeleton-card">
+                    <div class="skeleton sk-img"></div>
+                    <div class="skeleton sk-line"></div>
+                    <div class="skeleton sk-line short"></div>
+                    <div class="skeleton sk-line short" style="margin-top:auto"></div>
+                </div>
+            `;
+            grid.appendChild(el);
+        }
+    }
+
+    // --- FETCH WITH PROGRESS ---
+    async function fetchWithProgress(url, statusPrefix) {
+        const loaderBox = document.getElementById('realLoader');
+        const loaderText = document.getElementById('loaderText');
+        const loaderBar = document.getElementById('loaderProgress');
+        
+        loaderBox.style.display = 'block';
+        loaderText.textContent = `${statusPrefix} 0%`;
+        loaderBar.style.width = '0%';
+
         try {
-            await fetchReference();
-            document.getElementById('footerGameText').innerText = "2/2 Загрузка товаров...";
-            await fetchDatabase();
+            const response = await fetch(url);
+            if (!response.ok) throw new Error("File not found");
+
+            const contentLength = response.headers.get('content-length');
+            if (!contentLength) {
+                // Если нет заголовка размера (например, gzip), просто качаем без процентов
+                loaderText.textContent = `${statusPrefix} (Загрузка...)`;
+                const blob = await response.blob();
+                return blob.arrayBuffer();
+            }
+
+            const total = parseInt(contentLength, 10);
+            let loaded = 0;
+
+            const reader = response.body.getReader();
+            const chunks = [];
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                chunks.push(value);
+                loaded += value.length;
+                
+                const percent = Math.round((loaded / total) * 100);
+                loaderBar.style.width = `${percent}%`;
+                loaderText.textContent = `${statusPrefix} ${percent}%`;
+            }
+
+            // Combine chunks
+            const blob = new Blob(chunks);
+            return blob.arrayBuffer();
+
+        } catch (e) {
+            console.error("Fetch error:", e);
+            throw e;
+        }
+    }
+
+    async function initDataLoading() {
+        document.getElementById('footerGameText').innerText = "Подключение...";
+        try {
+            // 1. Reference
+            const refBuffer = await fetchWithProgress(FILE_REF, "Справочник");
+            const refWb = XLSX.read(refBuffer, {type:'array'});
+            processReference(refWb);
+            
+            // 2. Database
+            const dbBuffer = await fetchWithProgress(FILE_DB, "База товаров");
+            document.getElementById('realLoader').style.display = 'none'; // Скрываем лоадер
+            
+            const dbWb = XLSX.read(dbBuffer, {type:'array'});
+            processDatabase(dbWb);
+            
             document.getElementById('footerGameText').innerText = "Готово!";
         } catch (e) {
+            document.getElementById('realLoader').style.display = 'none';
             console.error("Critical Load Error:", e);
             document.getElementById('footerGameText').innerText = "Ошибка загрузки";
             loadLocalDB();
         }
     }
 
-    async function fetchReference() {
+    function processReference(wb) {
         try {
-            const response = await fetch(FILE_REF);
-            if (!response.ok) throw new Error("Справочник не найден");
-            const arrayBuffer = await response.arrayBuffer();
-            const wb = XLSX.read(arrayBuffer, {type:'array'});
             const ws = wb.Sheets[wb.SheetNames[0]];
             const json = XLSX.utils.sheet_to_json(ws, {header:1});
-
             const newRef = {};
-            // Exp: [4]Art, [1]Cat1, [2]Cat2, [3]Sub
             for(let i=1; i<json.length; i++) {
                 const r = json[i];
                 if(r && r[4]) { 
@@ -397,40 +470,20 @@
             }
             categoriesRef = newRef;
             localStorage.setItem('df_ref', JSON.stringify(categoriesRef));
-        } catch (e) {
-            console.warn("Справочник не обновлен, используем кэш:", e);
-            const cached = localStorage.getItem('df_ref');
-            if(cached) categoriesRef = JSON.parse(cached);
-        }
+        } catch(e) { console.warn("Ref parse error", e); }
     }
 
-    async function fetchDatabase() {
-        const response = await fetch(FILE_DB);
-        if (!response.ok) throw new Error("База не найдена");
-
-        const arrayBuffer = await response.arrayBuffer();
-        const wb = XLSX.read(arrayBuffer, {type:'array'});
+    function processDatabase(wb) {
         const ws = wb.Sheets[wb.SheetNames[0]];
         const json = XLSX.utils.sheet_to_json(ws, {header:1});
 
-        // 1. Ищем строку заголовков (где есть слово "Артикул")
         let head = -1; 
         for(let i=0; i<50; i++) {
             if(JSON.stringify(json[i]||[]).toLowerCase().includes('артикул')) { head=i; break; }
         }
-        if(head === -1) throw new Error("Неверный формат базы (нет заголовка 'Артикул')");
+        if(head === -1) throw new Error("Header not found");
 
-        // 2. АВТО-ПОИСК КОЛОНОК (SMART MAPPING)
-
-        let colArt = 0; // A
-        let colBrand = 1; // B
-        let colName = 2; // C
-        let colRetail = 4; // E
-        let colDealer = 5; // F
-        let colPromo = 6; // G
-        let colPack = 9; // J
-
-
+        let colArt = 0, colBrand = 1, colName = 2, colRetail = 4, colDealer = 5, colPromo = 6, colPack = 9;
         const headers = json[head].map(h => String(h || '').toLowerCase());
 
         headers.forEach((h, idx) => {
@@ -443,27 +496,16 @@
             else if (h.includes('упак') || h.includes('влож') || h.includes('кор')) colPack = idx;
         });
 
-        console.log(`Mapping: Art=${colArt}, Retail=${colRetail}, Dealer=${colDealer}, Pack=${colPack}`);
-
         const db = [];
         for(let i=head+1; i<json.length; i++) {
             const r = json[i];
             if(r && r[colArt]) {
                 const clean = v => parseFloat((v||0).toString().replace(/\s/g,'').replace(',','.')) || 0;
-
                 const art = r[colArt].toString().trim();
                 const ref = categoriesRef[art] || {c1: 'Другое', c2: '', s: ''};
-
-                // Используем найденные номера колонок
                 db.push({ 
-                    id: art, 
-                    br: r[colBrand], 
-                    nm: r[colName], 
-                    pp: clean(r[colRetail]), 
-                    pd: clean(r[colDealer]), 
-                    ps: 0, 
-                    pr: r[colPromo], 
-                    pk: r[colPack], 
+                    id: art, br: r[colBrand], nm: r[colName], pp: clean(r[colRetail]), 
+                    pd: clean(r[colDealer]), ps: 0, pr: r[colPromo], pk: r[colPack], 
                     c1: ref.c1, c2: ref.c2, sub: ref.s 
                 });
             }
@@ -473,7 +515,6 @@
             state.db = db;
             localStorage.setItem('df_db', JSON.stringify(db));
             document.getElementById('noDbState').classList.add('d-none');
-
             const uniqueCats = new Set(state.db.map(p => p.c1));
             if (uniqueCats.size <= 1) state.db.forEach(p => p.c1 = p.br);
 
@@ -482,6 +523,10 @@
             state.activeCat2 = 'Степлеры, антистеплеры, скобы';
             state.activeSub = 'all';
 
+            // Убираем скелетон и показываем сетку
+            document.getElementById('skeletonGrid').classList.add('d-none');
+            document.getElementById('productsGrid').classList.remove('d-none');
+            
             renderModeRow(); filterData(); updateGlobalState();
         }
     }
@@ -493,18 +538,33 @@
         if(raw) { 
             state.db = JSON.parse(raw); 
             document.getElementById('noDbState').classList.add('d-none'); 
+            
+            document.getElementById('skeletonGrid').classList.add('d-none');
+            document.getElementById('productsGrid').classList.remove('d-none');
+
             renderModeRow(); filterData(); updateGlobalState(); 
         } else document.getElementById('noDbState').classList.remove('d-none');
     }
 
-    // --- DISCOUNT LOGIC ---
+    // --- OTHER LOGIC SAME AS BEFORE ---
+    
+    // (Rest of the functions: DiscountSystem, renderModeRow, setMode, renderLevel2...3...4..., 
+    // selectCat1...2...Sub, filterData, getRawPrice, renderBatch, handleImgError, initDragScroll, 
+    // openProduct, adjustQty, updateCalc, confirmAddToCart, showLevelUpToast, updateGlobalState, 
+    // updateCartItemQty, updateCartFunnel, selectDelivery, toggleDropshipFields, submitOrder, 
+    // initCalculator, runSim, openCalculator, resetFilters...)
+
+    // Для сокращения кода здесь я не дублирую их, так как они не менялись. 
+    // Вставь сюда все функции начиная с `const DiscountSystem = ...` и до конца скрипта из твоего старого файла.
+    // Единственное отличие - renderBatch теперь не нужен, он такой же.
+    
+    // ВАЖНО: УБЕДИСЬ, ЧТО ВСТАВИЛ ОСТАЛЬНЫЕ ФУНКЦИИ ВНИЗ!
+    
     const DiscountSystem = {
         getTierPercent: function(sum) {
             const tiers = state.currentProfile.tiers;
             const percents = state.currentProfile.percents;
-            // Если шкала отключена (0)
             if (tiers.length === 1 && tiers[0] === 0) return 0;
-
             let millions = sum / 1000000;
             let pct = 0;
             for (let i = 0; i < tiers.length; i++) {
@@ -516,12 +576,7 @@
         getRangeInfo: function(sum) {
             const tiers = state.currentProfile.tiers;
             const percents = state.currentProfile.percents;
-            
-            // Если шкала отключена
-            if (tiers.length === 1 && tiers[0] === 0) {
-                return { hasTiers: false };
-            }
-
+            if (tiers.length === 1 && tiers[0] === 0) return { hasTiers: false };
             let millions = sum / 1000000;
             let prev = 0; let next = tiers[0]; let nextPct = percents[0];
             for (let i = 0; i < tiers.length; i++) {
@@ -543,7 +598,6 @@
         }
     };
 
-    // --- RENDER & NAVIGATION ---
     function renderModeRow() {
         const container = document.getElementById('rowMode'); container.innerHTML = '';
         const btnDeli = document.createElement('div'); btnDeli.className = `pill-mode ${state.mode === 'deli' ? 'active' : ''}`; btnDeli.textContent = "Deli"; btnDeli.onclick = () => setMode('deli'); container.appendChild(btnDeli);
@@ -619,7 +673,6 @@
     }
 
     function getRawPrice(p) { 
-        // Если есть спеццена (ps) и она меньше дилерской (pd) - используем её
         return (p.ps > 0 && p.ps < p.pd) ? p.ps : p.pd; 
     }
 
@@ -632,7 +685,6 @@
             const pack = (p.pk || '').toString().replace(/^'/, '');
             let promoBadge = ''; if(p.pr) { let cls = 'badge-promo'; if(p.pr.toLowerCase().includes('миним')) cls += ' badge-green'; promoBadge = `<div class="${cls}">${p.pr}</div>`; }
 
-            // Image Logic with 'img/' folder
             el.innerHTML = `
                 <div class="product-card" onclick="openProduct('${p.id}')">
                     <div class="chip-brand">${p.br}</div><div class="chip-pack">${pack}</div>
@@ -659,32 +711,23 @@
         });
     }
 
-    // --- CART & SUBMIT ---
     function openProduct(id) {
         const p = state.db.find(x => x.id === id); if(!p) return;
         state.currentProduct = p; 
         state.currentBoxSize = 1;
 
-        // UI Updates
         document.getElementById('modalTitle').textContent = p.nm; 
         document.getElementById('modalArt').textContent = p.id;
         document.getElementById('modalRetailPrice').textContent = p.pp > 0 ? p.pp.toLocaleString() + ' сум' : '---';
         const price = getRawPrice(p); 
         document.getElementById('modalDealerPrice').textContent = price.toLocaleString() + ' сум';
 
-        // Image
         const img = document.getElementById('modalImg'); img.removeAttribute('data-step'); img.setAttribute('data-id', id); img.src = `img/${id}.png`; img.onerror = function() { handleImgError(this) };
 
-        // --- BOX CALCULATION FIX ---
-        // Получаем строку упаковки, например "1/12/144"
         const pkStr = String(p.pk || '').replace(/^'/, ''); 
-        // Ищем все числа
         const nums = pkStr.match(/\d+/g); 
         let maxBox = 1; 
-        if(nums && nums.length > 0) { 
-            // Берем самое большое число как размер коробки
-            maxBox = Math.max(...nums.map(Number)); 
-        } 
+        if(nums && nums.length > 0) { maxBox = Math.max(...nums.map(Number)); } 
         state.currentBoxSize = maxBox;
 
         const boxRadio = document.getElementById('modeBox'); 
@@ -703,9 +746,7 @@
         if (currentQty > 0) { 
             const isBox = document.getElementById('modeBox').checked; 
             displayQty = isBox ? currentQty / maxBox : currentQty; 
-        } else { 
-            displayQty = 1; 
-        }
+        } else { displayQty = 1; }
 
         document.getElementById('qtyInput').value = displayQty; 
         updateCalc(); 
@@ -748,7 +789,6 @@
         document.getElementById('footerBaseSum').textContent = baseTotal.toLocaleString() + ' сум'; 
         document.getElementById('footerBenefit').textContent = Math.round(res.totalBenefit).toLocaleString() + ' сум';
         
-        // --- УМНЫЙ ФУТЕР (Updated) ---
         const footerFill = document.getElementById('footerFill'); 
         const gameText = document.getElementById('footerGameText'); 
         const rangeInfo = DiscountSystem.getRangeInfo(baseTotal);
@@ -758,15 +798,12 @@
 
         if (baseTotal > 0) { 
             if (!rangeInfo.hasTiers) {
-                // ШКАЛА ОТКЛЮЧЕНА (Действующий партнер)
                 footerFill.style.width = '100%'; 
                 gameText.innerHTML = `Персональная цена активна`; 
             } else if (rangeInfo.isMax) { 
-                // Максимум достигнут
                 footerFill.style.width = '100%'; 
                 gameText.innerHTML = `Максимальная скидка ${res.tierPct}% получена!`; 
             } else { 
-                // Процесс набора скидки
                 const tierRange = rangeInfo.nextLimit - rangeInfo.prevLimit; 
                 const progressInTier = baseTotal - rangeInfo.prevLimit; 
                 let fillPct = (progressInTier / tierRange) * 100; 
@@ -801,7 +838,6 @@
         document.getElementById('funnelRetail').innerText = Math.round(retailTotal).toLocaleString(); 
         document.getElementById('funnelBase').innerText = Math.round(baseDealerTotal).toLocaleString(); 
         
-        // --- СКРЫТИЕ СТРОКИ ОБЪЕМА ---
         const rangeInfo = DiscountSystem.getRangeInfo(baseDealerTotal);
         if (rangeInfo.hasTiers) {
             document.getElementById('funnelRowVolume').classList.remove('d-none');
@@ -816,18 +852,15 @@
         document.getElementById('funnelFinal').innerText = Math.round(res.finalSum).toLocaleString() + ' сум';
     }
 
-    // --- LOGISTICS UI FUNCTIONS ---
     function selectDelivery(method) {
         state.deliveryMethod = method;
         
-        // Reset Visuals
         document.getElementById('optStandard').classList.remove('selected');
         document.getElementById('iconStandard').className = 'bi bi-circle text-muted';
         
         document.getElementById('optExpress').classList.remove('selected');
         document.getElementById('iconExpress').className = 'bi bi-circle text-muted';
 
-        // Apply Selection
         if (method === 'standard') {
             document.getElementById('optStandard').classList.add('selected');
             document.getElementById('iconStandard').className = 'bi bi-check-circle-fill text-primary';
@@ -837,7 +870,6 @@
         }
     }
 
-    // --- DROPSHIPPING LOGIC ---
     function toggleDropshipFields() {
         const isDropship = document.getElementById('deliveryTypeSwitch').checked;
         const fields = document.getElementById('dropshipFields');
@@ -855,7 +887,6 @@
         const isPrepay = document.getElementById('cartPrepayCheck').checked;
         const isDropship = document.getElementById('deliveryTypeSwitch')?.checked || false;
 
-        // Валидация для дропшиппинга
         let recipientInfo = null;
         if (isDropship) {
             const name = document.getElementById('dsName').value.trim();

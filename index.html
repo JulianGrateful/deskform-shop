@@ -223,11 +223,32 @@
     const FILE_DB = 'price.xlsx';
     const FILE_REF = 'reference.xlsx';
 
+    // === ЛОГИКА СКИДОК ===
+    // 1. "new" (Новый/Возвращенный) = База + Шкала скидок (2-11%) + Предоплата
+    // 2. "active" (Действующий) = ТОЛЬКО База + Предоплата (Шкала отключена)
+    // 3. "market" (Рынок) = ТОЛЬКО База + Предоплата (Шкала отключена)
+    
     const DISCOUNT_PROFILES = {
-        'new': { name: "Новый партнер", tiers: [5, 10, 25, 50, 100, 150], percents: [2, 3, 5, 7, 9, 11] },
-        'active_dealer': { name: "Действующий партнер", tiers: [5, 10, 25, 50, 100, 150], percents: [3, 4, 6, 8, 10, 12] },
-        'market_solnechny': { name: "Рынок Солнечный", tiers: [10, 50], percents: [5, 10] },
-        'market_urikzar': { name: "Рынок Урикзар", tiers: [10, 100], percents: [6, 11] }
+        'new_partner': { 
+            name: "Новый партнер", 
+            tiers: [5, 10, 25, 50, 100, 150], 
+            percents: [2, 3, 5, 7, 9, 11] 
+        },
+        'active': { 
+            name: "Действующий партнер", 
+            tiers: [0],     // 0 = Шкала не работает
+            percents: [0]   // 0% за объем
+        },
+        'market_urikzar': { 
+            name: "Рынок Урикзар", 
+            tiers: [0], 
+            percents: [0] 
+        },
+        'market_solnechny': { 
+            name: "Рынок Солнечный", 
+            tiers: [0], 
+            percents: [0] 
+        }
     };
 
     let state = { 
@@ -685,5 +706,6 @@
 </script>
 </body>
 </html>
+
 
 

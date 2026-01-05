@@ -3,240 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>Deskform App | v6.0 Logistics</title>
-    
+    <title>Deskform App | Fix Categories</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <style>
-        :root { 
-            --primary: #007aff; 
-            --bg: #f2f2f7; 
-            --card-bg: #ffffff;
-            --text-main: #111827;
-            --text-sec: #6B7280;
-            --retail: #9CA3AF;
-            --accent-green: #10B981;
-            --accent-red: #EF4444;
-            --header-blur: rgba(255, 255, 255, 0.98);
-        }
+        :root { --primary: #007aff; --bg: #f2f2f7; --card-bg: #ffffff; --text-main: #111827; }
+        body { font-family: sans-serif; background: var(--bg); padding-bottom: 160px; -webkit-tap-highlight-color: transparent; }
         
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-            background: var(--bg); 
-            color: var(--text-main); 
-            padding-bottom: 160px; 
-            -webkit-tap-highlight-color: transparent; 
-        }
-        
-        /* HEADER STYLES */
-        .header-wrapper { 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            right: 0; 
-            z-index: 1000; 
-            background: var(--header-blur); 
-            backdrop-filter: blur(20px); 
-            border-bottom: 1px solid rgba(0,0,0,0.05); 
-            transition: transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1); 
-            will-change: transform; 
-        }
+        /* HEADER */
+        .header-wrapper { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: rgba(255,255,255,0.98); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(0,0,0,0.05); transition: transform 0.3s; }
         .header-wrapper.hidden { transform: translateY(-100%); }
-        
-        .navbar-brand { font-weight: 800; color: var(--text-main) !important; font-size: 1.1rem; line-height: 1; }
-        .brand-chip { 
-            background: rgba(255, 204, 0, 0.15); 
-            color: #9A7B0C; 
-            border: 1px solid rgba(255, 204, 0, 0.2); 
-            font-size: 0.65rem; 
-            padding: 2px 8px; 
-            border-radius: 6px; 
-            font-weight: 700; 
-            text-transform: uppercase; 
-            letter-spacing: 0.5px; 
-            margin-top: 2px; 
-            display: inline-block;
-        }
-        
-        /* SCROLLABLE CATEGORIES */
         .cat-scroll-container { display: flex; flex-direction: column; gap: 8px; padding-bottom: 8px; }
-        .scroll-row { 
-            overflow-x: auto; 
-            white-space: nowrap; 
-            padding: 0 4px; 
-            -ms-overflow-style: none; 
-            scrollbar-width: none; 
-            display: flex; 
-            gap: 8px; 
-            margin-bottom: 0; 
-        }
+        .scroll-row { overflow-x: auto; white-space: nowrap; padding: 0 4px; display: flex; gap: 8px; scrollbar-width: none; }
         .scroll-row::-webkit-scrollbar { display: none; }
-
-        /* PILLS & CHIPS */
-        .pill-mode { 
-            padding: 10px 20px; 
-            background: #fff; 
-            color: var(--text-main); 
-            border-radius: 24px; 
-            font-size: 1rem; 
-            font-weight: 800; 
-            border: 1px solid rgba(0,0,0,0.1); 
-            transition: all 0.2s; 
-            cursor: pointer; 
-            display: flex; align-items: center; 
-        }
+        
+        /* PILLS */
+        .pill-mode { padding: 8px 16px; background: #fff; border-radius: 20px; font-weight: 800; border: 1px solid rgba(0,0,0,0.1); cursor: pointer; display: flex; align-items: center; }
         .pill-mode.active { background: #111827; color: white; border-color: #111827; }
-        
-        .pill-l1 { padding: 8px 16px; background: #fff; border-radius: 20px; font-size: 0.9rem; font-weight: 700; border: 1px solid rgba(0,0,0,0.08); cursor: pointer; }
+        .pill-l1 { padding: 6px 14px; background: #fff; border-radius: 18px; font-size: 0.9rem; font-weight: 700; border: 1px solid rgba(0,0,0,0.1); cursor: pointer; }
         .pill-l1.active { background: var(--primary); color: white; border-color: var(--primary); }
-        
-        .pill-l2 { padding: 6px 14px; background: #E0F2FE; color: #0369A1; border-radius: 16px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+        .pill-l2 { padding: 5px 12px; background: #E0F2FE; color: #0369A1; border-radius: 14px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
         .pill-l2.active { background: #0284C7; color: white; }
-        
-        .pill-l3 { padding: 5px 12px; background: #F3F4F6; color: var(--text-sec); border-radius: 12px; font-size: 0.75rem; font-weight: 500; cursor: pointer; }
-        .pill-l3.active { background: var(--accent-green); color: white; }
+        .pill-l3 { padding: 4px 10px; background: #F3F4F6; color: #6B7280; border-radius: 12px; font-size: 0.8rem; font-weight: 500; cursor: pointer; }
+        .pill-l3.active { background: #10B981; color: white; }
 
+        .search-container { padding: 10px 16px; }
         .search-input-group { border-radius: 12px; background: #fff; border: 1px solid rgba(0,0,0,0.05); overflow: hidden; }
-        .search-input-group input { border: none; font-size: 16px; padding: 12px; }
-        .container-main { padding-top: 250px; }
+        .container-main { padding-top: 240px; }
 
-        /* PRODUCT CARDS */
-        .product-card { 
-            background: var(--card-bg); 
-            border: none; 
-            border-radius: 20px; 
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); 
-            height: 100%; 
-            display: flex; 
-            flex-direction: column; 
-            overflow: hidden; 
-            cursor: pointer; 
-            position: relative; 
-        }
-        .product-card:active { transform: scale(0.98); }
-        
-        .img-wrapper { height: 190px; padding: 20px; display: flex; align-items: center; justify-content: center; background: white; position: relative; }
+        /* CARDS */
+        .product-card { background: #fff; border-radius: 16px; overflow: hidden; height: 100%; position: relative; cursor: pointer; }
+        .img-wrapper { height: 160px; padding: 10px; display: flex; justify-content: center; align-items: center; position: relative; }
         .img-wrapper img { max-height: 100%; max-width: 100%; object-fit: contain; }
+        .chip-brand { position: absolute; top: 8px; left: 8px; background: #F3F4F6; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; }
+        .cart-indicator { position: absolute; bottom: 8px; right: 8px; background: var(--primary); color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; justify-content: center; align-items: center; font-size: 11px; font-weight: 700; }
+        .card-info { padding: 10px; }
+        .card-title { font-size: 0.85rem; font-weight: 500; height: 2.4em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; margin-bottom: 4px; }
+        .price-curr { font-size: 1rem; font-weight: 800; }
         
-        .chip-brand { position: absolute; top: 10px; left: 10px; background: #F3F4F6; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; z-index: 9; }
-        .chip-pack { position: absolute; top: 10px; right: 10px; background: #F3F4F6; color: var(--text-sec); padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 600; z-index: 9; }
-        
-        .cart-indicator { 
-            position: absolute; bottom: 10px; right: 10px; 
-            background: var(--primary); color: white; 
-            border-radius: 50%; width: 28px; height: 28px; 
-            display: flex; align-items: center; justify-content: center; 
-            font-size: 12px; font-weight: 700; 
-            box-shadow: 0 2px 8px rgba(0,122,255,0.4); 
-        }
-        
-        .card-info { padding: 14px; display: flex; flex-direction: column; flex-grow: 1; }
-        .card-title-text { font-size: 0.95rem; font-weight: 500; line-height: 1.3; margin-bottom: 4px; height: 2.6em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-        
-        .price-row { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; }
-        .price-retail-label { font-size: 0.7rem; color: var(--retail); display: block; margin-bottom: 2px; }
-        .price-curr { font-size: 1.15rem; font-weight: 700; color: var(--text-main); letter-spacing: -0.5px; line-height: 1; }
-        
-        .badge-promo { background: var(--accent-red); color: white; padding: 4px 8px; border-radius: 8px; font-size: 10px; font-weight: 700; margin-left: auto; }
-
         /* FOOTER */
-        .bottom-panel { 
-            position: fixed; bottom: 0; left: 0; width: 100%; 
-            background: #fff; border-top: 1px solid rgba(0,0,0,0.08); 
-            z-index: 990; padding-bottom: env(safe-area-inset-bottom); 
-            transition: transform 0.3s; box-shadow: 0 -5px 20px rgba(0,0,0,0.05); 
-        }
+        .bottom-panel { position: fixed; bottom: 0; left: 0; width: 100%; background: #fff; border-top: 1px solid rgba(0,0,0,0.1); z-index: 990; padding-bottom: env(safe-area-inset-bottom); }
         .bottom-panel.hidden { transform: translateY(100%); }
+        .footer-grid { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 10px 16px 15px; }
+        .btn-order { background: rgba(0,122,255,0.1); color: var(--primary); border: 1px solid rgba(0,122,255,0.2); border-radius: 12px; padding: 8px 16px; font-weight: 700; }
         
-        .footer-fill-bg { 
-            position: absolute; top: 0; left: 0; bottom: 0; 
-            background: rgba(16, 185, 129, 0.15); z-index: 0; width: 0%; 
-            transition: width 0.6s cubic-bezier(0.25, 1, 0.5, 1); 
-        }
-        .footer-grid { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 10px 16px 15px 16px; }
-        .footer-center { display: flex; flex-direction: column; align-items: center; text-align: center; }
-        
-        .f-game-text { font-size: 0.7rem; font-weight: 600; color: var(--primary); margin-bottom: 2px; }
-        .f-val-main { font-size: 1rem; font-weight: 800; color: var(--text-main); }
-        .f-benefit { font-size: 0.8rem; color: var(--accent-green); font-weight: 700; }
-        
-        .btn-order { 
-            background: rgba(0, 122, 255, 0.1); color: var(--primary); 
-            border: 1px solid rgba(0, 122, 255, 0.2); border-radius: 14px; 
-            padding: 10px 20px; font-weight: 700; font-size: 0.95rem; 
-        }
-        .cart-count-badge { background: var(--primary); color: white; padding: 2px 6px; border-radius: 6px; font-size: 0.75rem; margin-left: 6px; }
-
-        /* TOAST & LOADER */
-        .level-up-toast { 
-            position: fixed; top: 180px; left: 50%; 
-            transform: translateX(-50%) translateY(-20px); 
-            background: #10B981; color: white; 
-            padding: 10px 20px; border-radius: 50px; 
-            font-weight: 700; font-size: 0.9rem; z-index: 2000; 
-            opacity: 0; transition: all 0.5s; 
-        }
-        .level-up-toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
-        
-        #loaderOverlay { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: #fff; z-index: 2000; 
-            display: none; flex-direction: column; align-items: center; justify-content: center; 
-        }
-
         /* LOGISTICS UI */
-        .delivery-option {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 12px; border: 1px solid #f2f2f7; border-radius: 12px;
-            margin-bottom: 8px; cursor: pointer; transition: 0.2s;
-        }
-        .delivery-option.selected {
-            border-color: var(--primary);
-            background: rgba(0,122,255,0.05);
-        }
-        .delivery-icon { font-size: 1.5rem; margin-right: 12px; }
-        .del-title { font-weight: 700; font-size: 0.95rem; color: var(--text-main); }
-        .del-desc { font-size: 0.75rem; color: var(--text-sec); }
-
-        /* Modal Styles */
-        .modal-content { border-radius: 24px; border: none; background-color: #f9fafb; }
-        .quantity-control { background: #fff; border-radius: 16px; padding: 20px; margin-top: 15px; }
-        .cart-item { background: white; border-radius: 16px; padding: 12px; margin-bottom: 10px; border: 1px solid rgba(0,0,0,0.05); }
+        .delivery-option { display: flex; justify-content: space-between; align-items: center; padding: 12px; border: 1px solid #e5e5ea; border-radius: 12px; margin-bottom: 8px; cursor: pointer; }
+        .delivery-option.selected { border-color: var(--primary); background: rgba(0,122,255,0.05); }
+        
+        /* Loader */
+        #loaderOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 
-<div id="loaderOverlay">
-    <div class="spinner-border text-primary mb-3"></div>
-    <div class="fw-bold text-secondary">Загрузка базы данных...</div>
-</div>
-
-<div id="toastContainer"></div>
+<div id="loaderOverlay"><div class="spinner-border text-primary mb-3"></div><div>Загрузка базы...</div></div>
 
 <div class="header-wrapper" id="mainHeader">
     <div class="container pt-2 pb-2">
         <div class="d-flex justify-content-between align-items-center mb-2">
-            <div>
-                <div class="navbar-brand">Deskform Dealer</div>
-                <div class="brand-chip" id="userStatusChip">Статус: Загрузка...</div>
-            </div>
+            <div class="fw-bold">Deskform Dealer</div>
             <div class="d-flex gap-2">
-                <button class="btn btn-sm btn-primary rounded-pill px-3" id="btnCalc" onclick="openCalculator()" style="display:none">
-                    <i class="bi bi-calculator"></i>
-                </button>
-                <button class="btn btn-sm btn-light rounded-pill px-3" onclick="resetFilters()">Сброс</button>
+                <span class="badge bg-warning text-dark" id="userStatusChip">...</span>
+                <button class="btn btn-sm btn-light rounded-pill" onclick="resetFilters()">Сброс</button>
             </div>
         </div>
-        
         <div class="input-group mb-2 search-input-group">
             <span class="input-group-text border-0 bg-white"><i class="bi bi-search"></i></span>
-            <input type="text" id="searchInput" class="form-control border-0 shadow-none" placeholder="Поиск товаров...">
+            <input type="text" id="searchInput" class="form-control border-0 shadow-none" placeholder="Поиск...">
         </div>
-        
         <div class="cat-scroll-container">
             <div id="rowMode" class="scroll-row"></div>
             <div id="rowL2" class="scroll-row"></div>
@@ -248,858 +86,394 @@
 
 <div class="container container-main">
     <div id="productsGrid" class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-2"></div>
-    <div id="scrollSentinel" class="text-center py-4 opacity-0">
-        <div class="spinner-grow spinner-grow-sm text-secondary"></div>
-    </div>
-
-    <div id="emptyState" class="text-center py-5 d-none">
-        <i class="bi bi-search display-1 text-muted opacity-25"></i>
-        <p class="mt-2 text-muted">Ничего не найдено</p>
-    </div>
-    <div id="noDbState" class="text-center py-5 d-none">
-        <h4 class="mt-3">База пуста</h4>
-        <p class="text-muted small">Не удалось загрузить price.xlsx.</p>
-    </div>
+    <div id="scrollSentinel" class="text-center py-5 opacity-0">.</div>
+    <div id="emptyState" class="text-center py-5 d-none">Пусто</div>
 </div>
 
 <div class="bottom-panel" id="mainFooter">
-    <div class="footer-fill-bg" id="footerFill"></div>
     <div class="footer-grid">
-        <div></div> 
-        <div class="footer-center">
-            <div class="f-game-text" id="footerGameText">Загрузка...</div>
-            <div style="font-size:0.7rem;color:#6B7280">Сумма: <span class="f-val-main" id="footerBaseSum">0</span></div>
-            <div class="f-benefit">Выгода: <span id="footerBenefit">0</span></div>
+        <div></div>
+        <div class="text-center">
+            <div style="font-size:0.7rem;color:#6B7280">Сумма: <span class="fw-bold text-dark" id="footerBaseSum">0</span></div>
+            <div style="font-size:0.8rem;color:#10B981;font-weight:700">Выгода: <span id="footerBenefit">0</span></div>
         </div>
-        <button class="btn-order" data-bs-toggle="modal" data-bs-target="#cartModal">
-            Заказ <span class="cart-count-badge" id="cartCountBadge" style="display:none">0</span>
-        </button>
+        <button class="btn-order" data-bs-toggle="modal" data-bs-target="#cartModal">Корзина <span id="cartCountBadge" class="badge bg-primary ms-1" style="display:none">0</span></button>
     </div>
 </div>
 
-<div class="modal fade" id="productModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="background: #fff;">
-            <div class="modal-body p-4">
-                <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button>
-                
-                <div class="img-wrapper mb-3" style="height:200px; border-radius:12px; border:1px solid #f2f2f7;">
-                    <img id="modalImg" src="" alt="">
-                </div>
-                
-                <h5 class="fw-bold mb-1" id="modalTitle">Название товара</h5>
-                <div class="text-muted small mb-3">Артикул: <span id="modalArt" class="fw-bold text-dark"></span></div>
-                
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                    <span class="text-muted small">Цена в Ташкенте:</span>
-                    <span class="text-decoration-line-through text-muted" id="modalRetailPrice">0 сум</span>
-                </div>
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span class="fw-bold">Дилерская цена:</span>
-                    <span class="fs-3 fw-bold text-primary" id="modalDealerPrice">0 сум</span>
-                </div>
-                
-                <div class="quantity-control" style="background:#f9fafb; padding:15px;">
-                    <div class="d-flex justify-content-center mb-3">
-                        <div class="btn-group w-100" role="group">
-                            <input type="radio" class="btn-check" name="qtyMode" id="modeUnit" onchange="updateCalc()" checked>
-                            <label class="btn btn-outline-secondary border-0 fw-bold" for="modeUnit">Штуки</label>
-                            
-                            <input type="radio" class="btn-check" name="qtyMode" id="modeBox" onchange="updateCalc()">
-                            <label class="btn btn-outline-secondary border-0 fw-bold" for="modeBox">Коробка <span id="boxLabel" class="badge bg-secondary ms-1"></span></label>
-                        </div>
-                    </div>
-                    
-                    <div class="d-flex align-items-center justify-content-between">
-                        <button class="btn btn-light border bg-white shadow-sm" onclick="adjustQty(-1)" style="width:45px;height:45px;font-size:1.2rem">-</button>
-                        <input type="number" id="qtyInput" class="form-control border-0 bg-transparent text-center mx-2" style="font-size:2rem;font-weight:bold" value="0" min="0" oninput="updateCalc()">
-                        <button class="btn btn-light border bg-white shadow-sm" onclick="adjustQty(1)" style="width:45px;height:45px;font-size:1.2rem">+</button>
-                    </div>
-                    
-                    <div class="text-center mt-3 text-muted small">Сумма: <span id="calcTotalPrice" class="fw-bold text-dark fs-5">0</span> сум</div>
-                </div>
-                
-                <button class="btn btn-primary w-100 py-3 mt-3 rounded-4 fw-bold fs-6" onclick="confirmAddToCart()">Добавить в корзину</button>
-            </div>
-        </div>
-    </div>
-</div>
+<div class="modal fade" id="productModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-body p-4"><button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button><div class="img-wrapper mb-3"><img id="modalImg" src=""></div><h5 id="modalTitle" class="fw-bold mb-1"></h5><div class="text-muted small mb-3">Артикул: <span id="modalArt" class="fw-bold text-dark"></span></div><div class="d-flex justify-content-between mb-2"><span class="text-muted small">Розница:</span><span class="text-decoration-line-through text-muted" id="modalRetailPrice"></span></div><div class="d-flex justify-content-between mb-3"><span class="fw-bold">Опт:</span><span class="fs-4 fw-bold text-primary" id="modalDealerPrice"></span></div><div class="bg-light p-3 rounded-3"><div class="d-flex justify-content-center mb-3"><div class="btn-group w-100"><input type="radio" class="btn-check" name="qtyMode" id="modeUnit" onchange="updateCalc()" checked><label class="btn btn-outline-secondary" for="modeUnit">Шт.</label><input type="radio" class="btn-check" name="qtyMode" id="modeBox" onchange="updateCalc()"><label class="btn btn-outline-secondary" for="modeBox">Кор. <span id="boxLabel"></span></label></div></div><div class="d-flex align-items-center justify-content-between"><button class="btn btn-white border" onclick="adjustQty(-1)" style="width:40px;height:40px">-</button><input type="number" id="qtyInput" class="form-control text-center mx-2 border-0 bg-transparent fs-2 fw-bold" value="0" oninput="updateCalc()"><button class="btn btn-white border" onclick="adjustQty(1)" style="width:40px;height:40px">+</button></div><div class="text-center mt-2 small text-muted">Итого: <span id="calcTotalPrice" class="fw-bold text-dark">0</span></div></div><button class="btn btn-primary w-100 mt-3 py-3 rounded-3 fw-bold" onclick="confirmAddToCart()">Добавить</button></div></div></div></div>
 
 <div class="modal fade" id="cartModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-        <div class="modal-content" style="background: #f9fafb;">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold ms-2">Ваш заказ</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            
+        <div class="modal-content bg-light">
+            <div class="modal-header border-0 pb-0"><h5 class="fw-bold ms-2">Корзина</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
             <div class="modal-body p-3">
                 <div id="cartItemsList"></div>
-                <div id="cartEmptyMsg" class="text-center py-5 text-muted">Корзина пуста</div>
+                <div id="cartEmptyMsg" class="text-center py-5 text-muted">Пусто</div>
                 
                 <div id="logisticsBlock" class="d-none mt-3">
-                    <h6 class="fw-bold mb-3 ps-1">Способ доставки</h6>
-                    
+                    <h6 class="fw-bold mb-2 ps-1">Доставка</h6>
                     <div class="delivery-option selected" id="optStandard" onclick="selectDelivery('standard')">
-                        <div class="d-flex align-items-center">
-                            <div class="delivery-icon">🚛</div>
-                            <div>
-                                <div class="del-title">Стандарт (Фура)</div>
-                                <div class="del-desc">Консолидация, бесплатно от объема</div>
-                            </div>
-                        </div>
+                        <div><div class="fw-bold">Стандарт (Фура)</div><div class="small text-muted">Консолидация</div></div>
                         <i class="bi bi-check-circle-fill text-primary fs-5"></i>
                     </div>
-
                     <div class="delivery-option" id="optExpress" onclick="selectDelivery('express')">
-                        <div class="d-flex align-items-center">
-                            <div class="delivery-icon">🚕</div>
-                            <div>
-                                <div class="del-title">Экспресс (Пятак)</div>
-                                <div class="del-desc">Быстро, оплата такси при получении</div>
-                            </div>
-                        </div>
-                        <i class="bi bi-circle text-muted fs-5" id="iconExpress"></i>
+                        <div><div class="fw-bold">Экспресс (Пятак)</div><div class="small text-muted">Оплата такси при получении</div></div>
+                        <i class="bi bi-circle text-muted fs-5"></i>
                     </div>
-
-                    <div class="bg-white p-3 rounded-4 border mt-3">
-                        <div class="form-check form-switch d-flex justify-content-between align-items-center ps-0 mb-0">
-                            <label class="form-check-label fw-bold" for="switchDropship">📦 Дропшиппинг (Клиенту)</label>
-                            <input class="form-check-input ms-auto" type="checkbox" id="switchDropship" style="width: 45px; height: 24px;" onchange="toggleDropshipFields()">
+                    <div class="bg-white p-3 rounded-3 border mt-2">
+                        <div class="form-check form-switch d-flex justify-content-between ps-0 mb-0">
+                            <label class="form-check-label fw-bold" for="switchDropship">📦 Дропшиппинг</label>
+                            <input class="form-check-input ms-auto" type="checkbox" id="switchDropship" onchange="toggleDropshipFields()">
                         </div>
-                        
-                        <div id="dropshipFields" class="mt-3 d-none border-top pt-3">
+                        <div id="dropshipFields" class="mt-3 d-none border-top pt-2">
                             <input type="text" id="dsName" class="form-control mb-2" placeholder="ФИО Клиента">
-                            <input type="tel" id="dsPhone" class="form-control mb-2" placeholder="Телефон (+998...)">
-                            <textarea id="dsAddress" class="form-control" rows="2" placeholder="Адрес доставки / Ориентир"></textarea>
+                            <input type="tel" id="dsPhone" class="form-control mb-2" placeholder="Телефон">
+                            <textarea id="dsAddress" class="form-control" rows="2" placeholder="Адрес"></textarea>
                         </div>
                     </div>
                 </div>
 
-                <div id="cartFunnel" class="mt-3 bg-white p-3 rounded-4 border d-none">
-                    <div class="d-flex justify-content-between small mb-1">
-                        <span class="text-muted">Товары</span>
-                        <span id="funnelRetail">0</span>
-                    </div>
-                    <div class="d-flex justify-content-between small mb-1">
-                        <span class="fw-bold">Дилерская цена</span>
-                        <span id="funnelBase" class="fw-bold">0</span>
-                    </div>
-                    
-                    <div id="funnelRowVol" class="d-flex justify-content-between small mb-1 text-success">
-                        <span>Скидка (Объем) <span id="chipVolPct" class="badge bg-success bg-opacity-10 text-success ms-1">0%</span></span>
-                        <span id="funnelVol">0</span>
-                    </div>
-                    
-                    <hr class="my-2">
-                    
-                    <div class="d-flex justify-content-between align-items-center mb-2">
+                <div id="cartFunnel" class="mt-3 bg-white p-3 rounded-3 border d-none">
+                    <div class="d-flex justify-content-between small"><span>Товары:</span><span id="funnelBase">0</span></div>
+                    <div class="d-flex justify-content-between small text-success"><span>Скидка:</span><span id="funnelDiscount">0</span></div>
+                    <div class="d-flex justify-content-between align-items-center mt-2 border-top pt-2">
                         <span class="small fw-bold">Предоплата (-2%)</span>
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="cartPrepayCheck" onchange="updateCartFunnel()">
-                        </div>
+                        <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="cartPrepayCheck" onchange="updateCartFunnel()"></div>
                     </div>
-                    
-                    <div class="text-center mt-3">
-                        <div class="small text-muted">Итого к оплате</div>
-                        <div class="fs-2 fw-bold text-primary" id="funnelFinal">0 сум</div>
-                    </div>
+                    <div class="text-center mt-3"><div class="small text-muted">Итого</div><div class="fs-2 fw-bold text-primary" id="funnelFinal">0</div></div>
                 </div>
             </div>
-            
-            <div class="modal-footer justify-content-center bg-white border-0 pb-4">
-                <button class="btn btn-primary w-100 py-3 rounded-pill fw-bold fs-6 shadow-sm" onclick="submitOrder()">
-                    <i class="bi bi-check2-circle me-2"></i>Оформить заказ
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="calcModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-body p-4">
-                <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button>
-                <h5 class="fw-bold text-center mb-4">Калькулятор выгоды</h5>
-                
-                <div class="text-center mb-4">
-                    <div class="text-muted small text-uppercase fw-bold">Сумма закупа</div>
-                    <h2 class="fw-bold text-dark display-4" id="calcAmountDisplay">50 млн</h2>
-                    <input type="range" class="form-range mt-2" id="calcAmountSlider" min="5" max="200" step="1" value="50">
-                    <div class="d-flex justify-content-between small text-muted mt-1">
-                        <span>5 млн</span><span>200+ млн</span>
-                    </div>
-                </div>
-                
-                <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded-4 mb-3">
-                    <div>
-                        <div class="fw-bold">Предоплата</div>
-                        <div class="text-muted small">Бонус +2% к скидке</div>
-                    </div>
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" id="calcPrepayCheck" checked style="width:50px; height:25px">
-                    </div>
-                </div>
-                
-                <div class="text-center p-3 rounded-4 border">
-                    <div class="small text-muted text-uppercase fw-bold">Ваша экономия</div>
-                    <h3 class="text-success fw-bold" id="calcTotalBenefit">0</h3>
-                    <div class="small text-muted mt-1 pt-2 border-top">Итого к оплате: <span id="calcFinalPrice" class="fw-bold text-dark">0</span></div>
-                </div>
-            </div>
+            <div class="modal-footer justify-content-center bg-white border-0"><button class="btn btn-primary w-100 py-3 rounded-3 fw-bold" onclick="submitOrder()">Оформить</button></div>
         </div>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // --- INIT ---
-    const tg = window.Telegram.WebApp;
-    tg.expand();
-
+    const tg = window.Telegram.WebApp; tg.expand();
     const CONFIG = { batch: 24 };
-    const FILE_DB = 'price.xlsx';
-    const FILE_REF = 'reference.xlsx';
+    const FILE_DB = 'price.xlsx'; const FILE_REF = 'reference.xlsx';
 
-    // Categories priority for sorting
+    // === КАТЕГОРИИ И БРЕНДЫ (ДЛЯ СОРТИРОВКИ) ===
     const PRIORITY_CATS = ["Офисные принадлежности и деловые аксессуары"];
-    const PRIORITY_BRANDS = ["Linc", "ГАММА", "Claro", "Berlingo", "ALTA", "COLOP", "BG", "Svetocopy", "Снегурочка"];
-    const PRIORITY_OFFICE_CATS = [ "Степлеры, антистеплеры, скобы", "Дыроколы", "Ножницы и канцелярские ножи", "Доски", "Калькуляторы", "Органайзеры, настольные наборы и лотки", "Подставки и стаканы", "Зажимы" ];
+    const PRIORITY_OFFICE_CATS = ["Степлеры, антистеплеры, скобы", "Дыроколы", "Ножницы и канцелярские ножи"];
+    const PRIORITY_BRANDS = ["Linc", "ГАММА", "Claro", "Berlingo"];
 
-    // === DISCOUNT CONFIG ===
     const DISCOUNT_PROFILES = {
-        'new_partner': { 
-            name: "Новый партнер", 
-            tiers: [5, 10, 25, 50, 100, 150], 
-            percents: [2, 3, 5, 7, 9, 11] 
-        },
-        'active': { 
-            name: "Действующий партнер", 
-            tiers: [0],     // 0 = Шкала не работает
-            percents: [0]   // 0% за объем
-        },
-        'market_urikzar': { 
-            name: "Рынок Урикзар", 
-            tiers: [0], 
-            percents: [0] 
-        },
-        'market_solnechny': { 
-            name: "Рынок Солнечный", 
-            tiers: [0], 
-            percents: [0] 
-        }
+        'new_partner': { tiers: [5, 10, 25], percents: [2, 3, 5] },
+        'active': { tiers: [0], percents: [0] }
     };
 
-    // === APP STATE ===
     let state = { 
-        db: [], 
-        filtered: [], 
-        cart: {}, 
-        loaded: 0, 
-        currentProduct: null, 
-        currentBoxSize: 1, 
-        sort: 'price_asc',
-        mode: 'deli', 
-        activeCat1: 'all', activeCat2: 'all', activeSub: 'all', activeBrand: 'all',
-        userId: 0, 
-        clientType: 'new_partner', 
-        currentProfile: DISCOUNT_PROFILES['new_partner'],
-        deliveryMethod: 'standard' // standard | express
+        db: [], filtered: [], cart: {}, loaded: 0, currentProduct: null, currentBoxSize: 1, sort: 'price_asc',
+        mode: 'deli', activeCat1: 'all', activeCat2: 'all', activeSub: 'all', activeBrand: 'all',
+        userId: 0, clientType: 'new_partner', deliveryMethod: 'standard'
     };
-    
-    let lastTierPct = 0; 
     let categoriesRef = {}; 
 
-    // --- MAIN ---
     document.addEventListener('DOMContentLoaded', () => {
-        // Parse URL params from Bot
-        const urlParams = new URLSearchParams(window.location.search);
-        state.userId = urlParams.get('userId') || tg.initDataUnsafe?.user?.id || 0;
+        const p = new URLSearchParams(window.location.search);
+        state.userId = p.get('userId') || 0;
+        state.clientType = p.get('clientType') || 'new_partner';
+        document.getElementById('userStatusChip').innerText = state.clientType;
         
-        const typeParam = urlParams.get('clientType') || 'new_partner';
-        
-        if (DISCOUNT_PROFILES[typeParam]) {
-            state.clientType = typeParam;
-            state.currentProfile = DISCOUNT_PROFILES[typeParam];
-        } else {
-            state.clientType = 'new_partner';
-            state.currentProfile = DISCOUNT_PROFILES['new_partner'];
-        }
-        
-        // Update UI based on profile
-        document.getElementById('userStatusChip').textContent = `Статус: ${state.currentProfile.name}`;
-        
-        // Hide calculator for non-new
-        if (state.clientType !== 'new_partner') {
-            const btnCalc = document.getElementById('btnCalc');
-            if (btnCalc) btnCalc.style.display = 'none';
-        }
-
-        // Start Loading
         initDataLoading();
-
-        // Listeners
-        let lastScrollTop = 0; const header = document.getElementById('mainHeader'); const footer = document.getElementById('mainFooter');
+        
+        let lastScrollTop = 0; const h = document.getElementById('mainHeader');
         window.addEventListener('scroll', () => {
-            requestAnimationFrame(() => {
-                let st = window.pageYOffset || document.documentElement.scrollTop;
-                if (st > lastScrollTop && st > 100) { header.classList.add('hidden'); footer.classList.remove('hidden'); } else if (st < lastScrollTop) { header.classList.remove('hidden'); footer.classList.add('hidden'); } lastScrollTop = st <= 0 ? 0 : st;
-            });
+            let st = window.pageYOffset || document.documentElement.scrollTop;
+            if (st > lastScrollTop && st > 100) h.classList.add('hidden'); else h.classList.remove('hidden');
+            lastScrollTop = st <= 0 ? 0 : st;
         });
         
-        document.getElementById('searchInput').addEventListener('input', e => { setTimeout(() => filterData(), 300); window.scrollTo({ top: 0, behavior: 'smooth' }); });
-        
-        const sentinel = document.getElementById('scrollSentinel');
-        new IntersectionObserver(entries => { if(entries[0].isIntersecting && state.loaded < state.filtered.length) renderBatch(); }, { rootMargin: '400px' }).observe(sentinel);
-        
-        initCalculator();
-        initDragScroll(); 
+        document.getElementById('searchInput').addEventListener('input', e => { setTimeout(filterData, 300); window.scrollTo({top:0,behavior:'smooth'}); });
+        new IntersectionObserver(e => { if(e[0].isIntersecting) renderBatch(); }).observe(document.getElementById('scrollSentinel'));
     });
 
-    // --- DATA FETCHING ---
     async function initDataLoading() {
-        document.getElementById('footerGameText').innerText = "1/2 Загрузка категорий...";
-        try {
-            await fetchReference();
-            document.getElementById('footerGameText').innerText = "2/2 Загрузка товаров...";
-            await fetchDatabase();
-            document.getElementById('footerGameText').innerText = "Готово!";
-        } catch (e) {
-            console.error("Critical Load Error:", e);
-            document.getElementById('footerGameText').innerText = "Ошибка загрузки";
-            loadLocalDB();
-        }
+        document.getElementById('loaderOverlay').style.display = 'flex';
+        try { await fetchReference(); await fetchDatabase(); } 
+        catch(e) { console.error(e); loadLocalDB(); }
+        document.getElementById('loaderOverlay').style.display = 'none';
     }
 
     async function fetchReference() {
         try {
-            const response = await fetch(FILE_REF);
-            if (!response.ok) throw new Error("Справочник не найден");
-            const arrayBuffer = await response.arrayBuffer();
-            const wb = XLSX.read(arrayBuffer, {type:'array'});
-            const ws = wb.Sheets[wb.SheetNames[0]];
-            const json = XLSX.utils.sheet_to_json(ws, {header:1});
-            
-            const newRef = {};
-            for(let i=1; i<json.length; i++) {
-                const r = json[i];
-                if(r && r[4]) { 
-                    const art = r[4].toString().trim(); 
-                    newRef[art] = { c1: r[1], c2: r[2], s: r[3] }; 
-                }
-            }
-            categoriesRef = newRef;
-            localStorage.setItem('df_ref', JSON.stringify(categoriesRef));
-        } catch (e) {
-            const cached = localStorage.getItem('df_ref');
-            if(cached) categoriesRef = JSON.parse(cached);
-        }
+            const r = await fetch(FILE_REF); if(!r.ok) throw new Error();
+            const ab = await r.arrayBuffer(); const wb = XLSX.read(ab,{type:'array'});
+            const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header:1});
+            const ref = {};
+            for(let i=1; i<json.length; i++) { if(json[i][4]) ref[json[i][4].toString().trim()] = {c1:json[i][1], c2:json[i][2], s:json[i][3]}; }
+            categoriesRef = ref; localStorage.setItem('df_ref', JSON.stringify(ref));
+        } catch(e) {}
     }
 
     async function fetchDatabase() {
-        const response = await fetch(FILE_DB);
-        if (!response.ok) throw new Error("База не найдена");
+        const r = await fetch(FILE_DB); if(!r.ok) throw new Error();
+        const ab = await r.arrayBuffer(); const wb = XLSX.read(ab,{type:'array'});
+        const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header:1});
         
-        const arrayBuffer = await response.arrayBuffer();
-        const wb = XLSX.read(arrayBuffer, {type:'array'});
-        const ws = wb.Sheets[wb.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json(ws, {header:1});
-        
-        let head = -1; 
-        for(let i=0; i<50; i++) {
-            if(JSON.stringify(json[i]||[]).toLowerCase().includes('артикул')) { head=i; break; }
-        }
-        if(head === -1) throw new Error("Неверный формат базы");
+        let head=-1; for(let i=0; i<30; i++) if(JSON.stringify(json[i]||[]).toLowerCase().includes('артикул')) { head=i; break; }
+        if(head===-1) throw new Error();
 
-        // Smart Mapping
-        let colArt = 0, colBrand = 1, colName = 2, colRetail = 4, colDealer = 5, colPromo = 6, colPack = 9;
-        
-        const headers = json[head].map(h => String(h || '').toLowerCase());
-        headers.forEach((h, idx) => {
-            if (h.includes('артикул')) colArt = idx;
-            else if (h.includes('бренд') || h.includes('brand')) colBrand = idx;
-            else if (h.includes('наименование') || h.includes('товар')) colName = idx;
-            else if (h.includes('ташкент') || h.includes('розн') || h.includes('ррц')) colRetail = idx;
-            else if (h.includes('дилер') || h.includes('партнер') || h.includes('опт')) colDealer = idx;
-            else if (h.includes('акция') || h.includes('коммент')) colPromo = idx;
-            else if (h.includes('упак') || h.includes('влож') || h.includes('кор')) colPack = idx;
+        let cArt=0, cBr=1, cNm=2, cRet=4, cDeal=5, cPk=9;
+        json[head].forEach((x,i) => {
+            const s = String(x||'').toLowerCase();
+            if(s.includes('артикул')) cArt=i; else if(s.includes('бренд')) cBr=i;
+            else if(s.includes('наименование')) cNm=i; else if(s.includes('розн')) cRet=i;
+            else if(s.includes('дилер')) cDeal=i; else if(s.includes('упак')) cPk=i;
         });
 
         const db = [];
         for(let i=head+1; i<json.length; i++) {
-            const r = json[i];
-            if(r && r[colArt]) {
-                const clean = v => parseFloat((v||0).toString().replace(/\s/g,'').replace(',','.')) || 0;
-                
-                const art = r[colArt].toString().trim();
-                const ref = categoriesRef[art] || {c1: 'Другое', c2: '', s: ''};
-                
-                db.push({ 
-                    id: art, 
-                    br: r[colBrand], 
-                    nm: r[colName], 
-                    pp: clean(r[colRetail]), 
-                    pd: clean(r[colDealer]), 
-                    ps: 0, 
-                    pr: r[colPromo], 
-                    pk: r[colPack], 
-                    c1: ref.c1, c2: ref.c2, sub: ref.s 
+            const row = json[i];
+            if(row && row[cArt]) {
+                const art = row[cArt].toString().trim();
+                const ref = categoriesRef[art] || {c1:'Другое', c2:'', s:''};
+                const cln = v => parseFloat((v||0).toString().replace(/\s/g,'').replace(',','.'))||0;
+                db.push({
+                    id: art, br: row[cBr], nm: row[cNm],
+                    pp: cln(row[cRet]), pd: cln(row[cDeal]), pk: row[cPk],
+                    c1: ref.c1, c2: ref.c2, sub: ref.s
                 });
             }
         }
-        
-        if (db.length > 0) {
-            state.db = db;
-            localStorage.setItem('df_db', JSON.stringify(db));
-            document.getElementById('noDbState').classList.add('d-none');
-            
-            const uniqueCats = new Set(state.db.map(p => p.c1));
-            if (uniqueCats.size <= 1) state.db.forEach(p => p.c1 = p.br);
-            
-            state.mode = 'deli';
-            state.activeCat1 = 'Офисные принадлежности и деловые аксессуары';
-            state.activeCat2 = 'Степлеры, антистеплеры, скобы';
-            state.activeSub = 'all';
-            
-            renderModeRow(); filterData(); updateGlobalState();
-        }
-    }
-
-    function loadLocalDB() {
-        const raw = localStorage.getItem('df_db');
-        const rawRef = localStorage.getItem('df_ref');
-        if(rawRef) categoriesRef = JSON.parse(rawRef);
-        if(raw) { 
-            state.db = JSON.parse(raw); 
-            document.getElementById('noDbState').classList.add('d-none'); 
+        state.db = db; localStorage.setItem('df_db', JSON.stringify(db));
+        if(db.length) { 
+            state.activeCat1='Офисные принадлежности и деловые аксессуары'; 
+            state.activeCat2='Степлеры, антистеплеры, скобы';
             renderModeRow(); filterData(); updateGlobalState(); 
-        } else document.getElementById('noDbState').classList.remove('d-none');
-    }
-
-    // --- LOGISTICS UI LOGIC ---
-    function selectDelivery(method) {
-        state.deliveryMethod = method;
-        
-        // Reset Styles
-        document.getElementById('optStandard').classList.remove('selected');
-        const iconStd = document.getElementById('optStandard').querySelector('.bi');
-        iconStd.className = 'bi bi-circle text-muted fs-5';
-        
-        document.getElementById('optExpress').classList.remove('selected');
-        const iconExp = document.getElementById('optExpress').querySelector('.bi');
-        iconExp.className = 'bi bi-circle text-muted fs-5';
-
-        // Set Active
-        if(method === 'standard') {
-            document.getElementById('optStandard').classList.add('selected');
-            iconStd.className = 'bi bi-check-circle-fill text-primary fs-5';
-        } else {
-            document.getElementById('optExpress').classList.add('selected');
-            iconExp.className = 'bi bi-check-circle-fill text-primary fs-5';
         }
     }
-
-    function toggleDropshipFields() {
-        const on = document.getElementById('switchDropship').checked;
-        const fields = document.getElementById('dropshipFields');
-        if (on) fields.classList.remove('d-none');
-        else fields.classList.add('d-none');
+    
+    function loadLocalDB() {
+        const d = localStorage.getItem('df_db');
+        if(d) { state.db = JSON.parse(d); renderModeRow(); filterData(); updateGlobalState(); }
+        else document.getElementById('emptyState').classList.remove('d-none');
     }
 
-    // --- DISCOUNT LOGIC ---
-    const DiscountSystem = {
-        getTierPercent: function(sum) {
-            const tiers = state.currentProfile.tiers;
-            const percents = state.currentProfile.percents;
-            if (tiers.length === 1 && tiers[0] === 0) return 0;
-
-            let millions = sum / 1000000;
-            let pct = 0;
-            for (let i = 0; i < tiers.length; i++) {
-                if (millions >= tiers[i]) pct = percents[i]; else break;
-            }
-            if (millions >= tiers[tiers.length - 1]) pct = percents[percents.length - 1];
-            return pct;
-        },
-        getRangeInfo: function(sum) {
-            const tiers = state.currentProfile.tiers;
-            const percents = state.currentProfile.percents;
-            if (tiers.length === 1 && tiers[0] === 0) return { hasTiers: false };
-
-            let millions = sum / 1000000;
-            let prev = 0; let next = tiers[0]; let nextPct = percents[0];
-            for (let i = 0; i < tiers.length; i++) {
-                if (millions >= tiers[i]) {
-                    prev = tiers[i];
-                    if (i + 1 < tiers.length) { next = tiers[i+1]; nextPct = percents[i+1]; } else { next = tiers[i]; nextPct = percents[i]; }
-                } else { next = tiers[i]; nextPct = percents[i]; break; }
-            }
-            return { hasTiers: true, prevLimit: prev * 1000000, nextLimit: next * 1000000, nextPct: nextPct, isMax: millions >= tiers[tiers.length - 1] };
-        },
-        calculate: function(dealerSum, isPrepay) {
-            const tierPct = this.getTierPercent(dealerSum);
-            const sumAfterTier = dealerSum - (dealerSum * (tierPct / 100));
-            const payPct = isPrepay ? 2 : 0;
-            const finalSum = sumAfterTier - (sumAfterTier * (payPct / 100));
-            const impliedRetail = dealerSum / 0.85; 
-            const totalBenefit = impliedRetail - finalSum;
-            return { baseSum: dealerSum, tierPct: tierPct, sumAfterTier: sumAfterTier, payPct: payPct, finalSum: finalSum, totalBenefit: totalBenefit };
-        }
-    };
-
-    // --- RENDER & NAVIGATION ---
+    // --- NAVIGATION RENDERERS (THE FIX) ---
     function renderModeRow() {
-        const container = document.getElementById('rowMode'); container.innerHTML = '';
-        const btnDeli = document.createElement('div'); btnDeli.className = `pill-mode ${state.mode === 'deli' ? 'active' : ''}`; btnDeli.textContent = "Deli"; btnDeli.onclick = () => setMode('deli'); container.appendChild(btnDeli);
-        const btnDf = document.createElement('div'); btnDf.className = `pill-mode ${state.mode === 'deskform' ? 'active' : ''}`; btnDf.textContent = "Ассортимент Deskform"; btnDf.onclick = () => setMode('deskform'); container.appendChild(btnDf);
+        const c = document.getElementById('rowMode'); c.innerHTML='';
+        const add = (txt, val) => {
+            const d = document.createElement('div'); d.className=`pill-mode ${state.mode===val?'active':''}`;
+            d.innerText=txt; d.onclick=()=>{ setMode(val); }; c.appendChild(d);
+        };
+        add('Deli', 'deli'); add('Deskform', 'deskform');
+        renderL2();
     }
     
-    function setMode(mode) {
-        state.mode = mode; state.activeCat1 = 'all'; state.activeCat2 = 'all'; state.activeSub = 'all'; state.activeBrand = 'all';
-        if (mode === 'deli') { state.activeCat1 = 'Офисные принадлежности и деловые аксессуары'; state.activeCat2 = 'Степлеры, антистеплеры, скобы'; } else { state.activeBrand = 'Linc'; }
-        renderModeRow(); filterData(); window.scrollTo({ top: 0, behavior: 'smooth' });
+    function setMode(m) {
+        state.mode = m; state.activeCat1='all'; state.activeCat2='all'; state.activeSub='all'; state.activeBrand='all';
+        if(m==='deli') { state.activeCat1='Офисные принадлежности и деловые аксессуары'; state.activeCat2='Степлеры, антистеплеры, скобы'; } else { state.activeBrand='Linc'; }
+        renderModeRow(); filterData();
     }
-    
-    function renderLevel2() {
-        const container = document.getElementById('rowL2'); container.innerHTML = ''; 
-        if (state.mode === 'deli') {
-            const cats = {}; state.db.filter(p => p.br === 'Deli').forEach(p => { const c = p.c1 || 'Другое'; if (c !== 'Другое') cats[c] = (cats[c] || 0) + 1; });
-            let sorted = Object.keys(cats).sort(); sorted = [...PRIORITY_CATS.filter(x => sorted.includes(x)), ...sorted.filter(x => !PRIORITY_CATS.includes(x))];
-            sorted.forEach(c => { const pill = document.createElement('div'); pill.className = `pill-l1 ${state.activeCat1 === c ? 'active' : ''}`; pill.innerHTML = `${c}`; pill.onclick = () => selectCat1(c); container.appendChild(pill); });
-            renderLevel3Deli();
+
+    function renderL2() {
+        const c = document.getElementById('rowL2'); c.innerHTML='';
+        if(state.mode==='deli') {
+            const u = {}; state.db.filter(x=>x.br==='Deli').forEach(x=>u[x.c1||'Другое']=1);
+            let s = Object.keys(u).sort(); s=[...PRIORITY_CATS.filter(x=>s.includes(x)), ...s.filter(x=>!PRIORITY_CATS.includes(x))];
+            s.forEach(k => { const d=document.createElement('div'); d.className=`pill-l1 ${state.activeCat1===k?'active':''}`; d.innerText=k; d.onclick=()=>{state.activeCat1=k; state.activeCat2='all'; state.activeSub='all'; renderL2(); filterData();}; c.appendChild(d); });
+            renderL3();
         } else {
-            const brands = {}; state.db.filter(p => p.br !== 'Deli').forEach(p => { brands[p.br] = (brands[p.br] || 0) + 1; });
-            let sorted = Object.keys(brands).sort(); sorted = [...PRIORITY_BRANDS.filter(x => sorted.includes(x)), ...sorted.filter(x => !PRIORITY_BRANDS.includes(x))];
-            sorted.forEach(b => { const pill = document.createElement('div'); pill.className = `pill-l1 ${state.activeBrand === b ? 'active' : ''}`; pill.innerHTML = `${b}`; pill.onclick = () => selectBrand(b); container.appendChild(pill); });
+            const u = {}; state.db.filter(x=>x.br!=='Deli').forEach(x=>u[x.br]=1);
+            let s = Object.keys(u).sort(); s=[...PRIORITY_BRANDS.filter(x=>s.includes(x)), ...s.filter(x=>!PRIORITY_BRANDS.includes(x))];
+            s.forEach(k => { const d=document.createElement('div'); d.className=`pill-l1 ${state.activeBrand===k?'active':''}`; d.innerText=k; d.onclick=()=>{state.activeBrand=k; renderL2(); filterData();}; c.appendChild(d); });
             document.getElementById('rowL3').innerHTML=''; document.getElementById('rowL4').innerHTML='';
         }
     }
-    
-    function renderLevel3Deli() {
-        const row3 = document.getElementById('rowL3'); if (state.activeCat1 === 'all') { row3.innerHTML=''; return; }
-        const cats2 = {}; state.db.filter(p => p.br === 'Deli' && p.c1 === state.activeCat1).forEach(p => { if(p.c2) cats2[p.c2] = (cats2[p.c2] || 0) + 1; });
-        if (Object.keys(cats2).length === 0) { row3.innerHTML=''; return; }
-        row3.innerHTML = '';
-        let sorted = Object.keys(cats2).sort();
-        if (state.activeCat1 === 'Офисные принадлежности и деловые аксессуары') { const priority = PRIORITY_OFFICE_CATS.filter(x => sorted.includes(x)); const others = sorted.filter(x => !PRIORITY_OFFICE_CATS.includes(x)); sorted = [...priority, ...others]; }
-        sorted.forEach(c => { const pill = document.createElement('div'); pill.className = `pill-l2 ${state.activeCat2 === c ? 'active' : ''}`; pill.innerHTML = `${c}`; pill.onclick = () => selectCat2(c); row3.appendChild(pill); });
-        renderLevel4Deli();
+
+    function renderL3() {
+        const c = document.getElementById('rowL3'); c.innerHTML='';
+        if(state.activeCat1==='all') return;
+        const u = {}; state.db.filter(x=>x.br==='Deli' && x.c1===state.activeCat1).forEach(x=>u[x.c2||'']=1);
+        let s = Object.keys(u).sort(); 
+        if(state.activeCat1.includes('Офис')) s=[...PRIORITY_OFFICE_CATS.filter(x=>s.includes(x)), ...s.filter(x=>!PRIORITY_OFFICE_CATS.includes(x))];
+        s.forEach(k => { const d=document.createElement('div'); d.className=`pill-l2 ${state.activeCat2===k?'active':''}`; d.innerText=k; d.onclick=()=>{state.activeCat2=k; state.activeSub='all'; renderL3(); filterData();}; c.appendChild(d); });
+        renderL4();
     }
 
-    function renderLevel4Deli() {
-        const row4 = document.getElementById('rowL4'); if (state.activeCat2 === 'all') { row4.innerHTML=''; return; }
-        const subs = {}; state.db.filter(p => p.br === 'Deli' && p.c1 === state.activeCat1 && p.c2 === state.activeCat2 && p.sub).forEach(p => { subs[p.sub] = (subs[p.sub] || 0) + 1; });
-        if (Object.keys(subs).length === 0) { row4.innerHTML=''; return; }
-        row4.innerHTML = '';
-        const allPill = document.createElement('div'); allPill.className = `pill-l3 ${state.activeSub === 'all' ? 'active' : ''}`; allPill.innerHTML = `Все`; allPill.onclick = () => selectSub('all'); row4.appendChild(allPill);
-        Object.keys(subs).sort().forEach(s => { const pill = document.createElement('div'); pill.className = `pill-l3 ${state.activeSub === s ? 'active' : ''}`; pill.innerHTML = `${s}`; pill.onclick = () => selectSub(s); row4.appendChild(pill); });
+    function renderL4() {
+        const c = document.getElementById('rowL4'); c.innerHTML='';
+        if(state.activeCat2==='all') return;
+        const u = {}; state.db.filter(x=>x.br==='Deli' && x.c1===state.activeCat1 && x.c2===state.activeCat2).forEach(x=>u[x.sub||'']=1);
+        const add = (k, l) => { const d=document.createElement('div'); d.className=`pill-l3 ${state.activeSub===k?'active':''}`; d.innerText=l; d.onclick=()=>{state.activeSub=k; filterData();}; c.appendChild(d); };
+        add('all', 'Все');
+        Object.keys(u).sort().forEach(k => add(k, k));
     }
-
-    function selectCat1(val) { state.activeCat1 = val; state.activeCat2 = 'all'; state.activeSub = 'all'; renderLevel2(); filterData(); }
-    function selectCat2(val) { state.activeCat2 = val; state.activeSub = 'all'; renderLevel3Deli(); filterData(); }
-    function selectSub(val) { state.activeSub = val; renderLevel4Deli(); filterData(); }
-    function selectBrand(val) { state.activeBrand = val; renderLevel2(); filterData(); }
 
     function filterData() {
         const q = document.getElementById('searchInput').value.toLowerCase().trim();
         let list = state.db.filter(p => {
-            const matchesSearch = !q || p.nm.toLowerCase().includes(q) || p.id.toLowerCase().includes(q);
-            if (!matchesSearch) return false;
-            if (state.mode === 'deli') {
-                if (p.br !== 'Deli') return false; 
-                if (state.activeCat1 !== 'all' && p.c1 !== state.activeCat1) return false;
-                if (state.activeCat2 !== 'all' && p.c2 !== state.activeCat2) return false;
-                if (state.activeSub !== 'all' && p.sub !== state.activeSub) return false;
+            if(q && !p.nm.toLowerCase().includes(q) && !p.id.toLowerCase().includes(q)) return false;
+            if(state.mode==='deli') {
+                if(p.br!=='Deli') return false;
+                if(state.activeCat1!=='all' && p.c1!==state.activeCat1) return false;
+                if(state.activeCat2!=='all' && p.c2!==state.activeCat2) return false;
+                if(state.activeSub!=='all' && p.sub!==state.activeSub) return false;
             } else {
-                if (p.br === 'Deli') return false;
-                if (state.activeBrand !== 'all' && p.br !== state.activeBrand) return false;
+                if(p.br==='Deli') return false;
+                if(state.activeBrand!=='all' && p.br!==state.activeBrand) return false;
             }
             return true;
         });
-        if(state.sort === 'price_asc') list.sort((a,b) => getRawPrice(a) - getRawPrice(b));
-        state.filtered = list; document.getElementById('productsGrid').innerHTML = ''; state.loaded = 0;
-        document.getElementById('emptyState').classList.toggle('d-none', state.filtered.length > 0); renderBatch();
+        if(state.sort==='price_asc') list.sort((a,b)=>a.pd - b.pd);
+        state.filtered = list; document.getElementById('productsGrid').innerHTML=''; state.loaded=0; renderBatch();
     }
-    
-    function getRawPrice(p) { return (p.ps > 0 && p.ps < p.pd) ? p.ps : p.pd; }
 
     function renderBatch() {
-        const batch = state.filtered.slice(state.loaded, state.loaded + CONFIG.batch); if(!batch.length) return;
-        const fragment = document.createDocumentFragment();
+        const batch = state.filtered.slice(state.loaded, state.loaded+CONFIG.batch);
+        const f = document.createDocumentFragment();
         batch.forEach(p => {
-            const el = document.createElement('div'); el.className = 'col';
-            const price = getRawPrice(p); const inCart = state.cart[p.id] || 0; 
-            const pack = (p.pk || '').toString().replace(/^'/, '');
-            let promoBadge = ''; if(p.pr) { let cls = 'badge-promo'; if(p.pr.toLowerCase().includes('миним')) cls += ' badge-green'; promoBadge = `<div class="${cls}">${p.pr}</div>`; }
-            
-            el.innerHTML = `
-                <div class="product-card" onclick="openProduct('${p.id}')">
-                    <div class="chip-brand">${p.br}</div><div class="chip-pack">${pack}</div>
-                    <div class="img-wrapper"><img src="img/${p.id}.png" loading="lazy" data-id="${p.id}" onerror="handleImgError(this)"><div class="cart-indicator" id="badge-${p.id}" style="${inCart > 0 ? '' : 'display:none'}">${inCart}</div></div>
-                    <div class="card-info"><div class="card-title-text text-dark">${p.nm}</div><div class="text-muted small mb-1" style="font-size:0.75rem">Арт: ${p.id}</div>
-                        <div class="price-row"><div class="price-col"><span class="price-retail-label">РРЦ: ${p.pp > 0 ? p.pp.toLocaleString() : '---'}</span><div class="price-curr">${price.toLocaleString()}</div></div>${promoBadge}</div>
-                    </div>
-                </div>`;
-            fragment.appendChild(el);
+            const d = document.createElement('div'); d.className='col';
+            const cnt = state.cart[p.id]||0;
+            d.innerHTML = `<div class="product-card" onclick="openProduct('${p.id}')">
+                <div class="chip-brand">${p.br}</div>
+                <div class="img-wrapper"><img src="img/${p.id}.png" loading="lazy" onerror="this.src='https://dummyimage.com/200x200/eee/aaa&text=No+Img'">
+                <div class="cart-indicator" style="display:${cnt?'flex':'none'}">${cnt}</div></div>
+                <div class="card-info"><div class="card-title text-dark">${p.nm}</div>
+                <div class="price-curr">${p.pd.toLocaleString()}</div></div></div>`;
+            f.appendChild(d);
         });
-        document.getElementById('productsGrid').appendChild(fragment); state.loaded += batch.length;
-    }
-    
-    function handleImgError(img) { const id = img.getAttribute('data-id'); const step = parseInt(img.getAttribute('data-step') || 0); if (step === 0) { img.setAttribute('data-step', 1); img.src = `img/${id}.jpg`; } else if (step === 1) { img.setAttribute('data-step', 2); img.src = `img/${id}.jpeg`; } else { img.src = 'https://dummyimage.com/200x200/f0f0f0/ccc&text=Нет+фото'; img.style.opacity = 0.5; } }
-
-    function initDragScroll() {
-        const sliders = document.querySelectorAll('.scroll-row');
-        sliders.forEach(slider => {
-            let isDown = false; let startX; let scrollLeft;
-            slider.addEventListener('mousedown', (e) => { isDown = true; startX = e.pageX - slider.offsetLeft; scrollLeft = slider.scrollLeft; });
-            slider.addEventListener('mouseleave', () => { isDown = false; });
-            slider.addEventListener('mouseup', () => { isDown = false; });
-            slider.addEventListener('mousemove', (e) => { if(!isDown) return; e.preventDefault(); const x = e.pageX - slider.offsetLeft; const walk = (x - startX) * 2; slider.scrollLeft = scrollLeft - walk; });
-        });
+        document.getElementById('productsGrid').appendChild(f); state.loaded+=batch.length;
+        document.getElementById('emptyState').classList.toggle('d-none', state.filtered.length>0);
     }
 
-    // --- CART LOGIC ---
+    // --- CART ---
     function openProduct(id) {
-        const p = state.db.find(x => x.id === id); if(!p) return;
-        state.currentProduct = p; 
+        const p = state.db.find(x=>x.id===id); if(!p) return;
+        state.currentProduct = p;
+        document.getElementById('modalTitle').innerText = p.nm;
+        document.getElementById('modalArt').innerText = p.id;
+        document.getElementById('modalRetailPrice').innerText = p.pp>0?p.pp.toLocaleString():'---';
+        document.getElementById('modalDealerPrice').innerText = p.pd.toLocaleString() + ' сум';
+        document.getElementById('modalImg').src = `img/${id}.png`;
         
-        document.getElementById('modalTitle').textContent = p.nm; 
-        document.getElementById('modalArt').textContent = p.id;
-        document.getElementById('modalRetailPrice').textContent = p.pp > 0 ? p.pp.toLocaleString() + ' сум' : '---';
-        const price = getRawPrice(p); 
-        document.getElementById('modalDealerPrice').textContent = price.toLocaleString() + ' сум';
-        
-        const img = document.getElementById('modalImg'); img.removeAttribute('data-step'); img.setAttribute('data-id', id); img.src = `img/${id}.png`; img.onerror = function() { handleImgError(this) };
-        
-        const pkStr = String(p.pk || '').replace(/^'/, ''); 
-        const nums = pkStr.match(/\d+/g); 
-        let maxBox = 1; 
-        if(nums && nums.length > 0) maxBox = Math.max(...nums.map(Number)); 
+        const nums = (p.pk||'').toString().match(/\d+/g);
+        const maxBox = nums ? Math.max(...nums.map(Number)) : 1;
         state.currentBoxSize = maxBox;
         
-        const boxRadio = document.getElementById('modeBox'); 
-        if(maxBox > 1) { boxRadio.disabled = false; document.getElementById('boxLabel').textContent = `x${maxBox}`; boxRadio.checked = true; } 
-        else { boxRadio.disabled = true; document.getElementById('boxLabel').textContent = ''; document.getElementById('modeUnit').checked = true; }
+        const box = document.getElementById('modeBox');
+        if(maxBox>1) { box.disabled=false; document.getElementById('boxLabel').innerText=`x${maxBox}`; box.checked=true; }
+        else { box.disabled=true; document.getElementById('boxLabel').innerText=''; document.getElementById('modeUnit').checked=true; }
         
-        let currentQty = state.cart[p.id] || 0; 
-        let displayQty = 0; 
-        if (currentQty > 0) { 
-            const isBox = document.getElementById('modeBox').checked; 
-            displayQty = isBox ? currentQty / maxBox : currentQty; 
-        } else { displayQty = 1; }
-        
-        document.getElementById('qtyInput').value = displayQty; 
-        updateCalc(); 
+        const cur = state.cart[p.id]||0;
+        document.getElementById('qtyInput').value = (document.getElementById('modeBox').checked && maxBox>1) ? cur/maxBox : cur;
+        updateCalc();
         new bootstrap.Modal(document.getElementById('productModal')).show();
     }
 
-    function adjustQty(delta) { const input = document.getElementById('qtyInput'); let newVal = (parseInt(input.value) || 0) + delta; if(newVal < 0) newVal = 0; input.value = newVal; updateCalc(); }
-    
-    function updateCalc() { 
-        const p = state.currentProduct; if(!p) return; 
-        const isBox = document.getElementById('modeBox').checked; 
-        const inputVal = parseInt(document.getElementById('qtyInput').value) || 0; 
-        const multiplier = isBox ? state.currentBoxSize : 1; 
-        const realQty = inputVal * multiplier; 
-        const price = getRawPrice(p); 
-        document.getElementById('calcTotalPrice').textContent = (realQty * price).toLocaleString(); 
+    function updateCalc() {
+        const p = state.currentProduct; if(!p) return;
+        const box = document.getElementById('modeBox').checked;
+        const qty = (parseInt(document.getElementById('qtyInput').value)||0) * (box ? state.currentBoxSize : 1);
+        document.getElementById('calcTotalPrice').innerText = (qty * p.pd).toLocaleString();
     }
-    
-    function confirmAddToCart() { 
+    function adjustQty(d) {
+        const i = document.getElementById('qtyInput'); let v = (parseInt(i.value)||0)+d; if(v<0) v=0; i.value=v; updateCalc();
+    }
+    function confirmAddToCart() {
         const p = state.currentProduct; 
-        const isBox = document.getElementById('modeBox').checked; 
-        const inputVal = parseInt(document.getElementById('qtyInput').value) || 0; 
-        const multiplier = isBox ? state.currentBoxSize : 1; 
-        const finalQty = inputVal * multiplier; 
-        if(finalQty > 0) state.cart[p.id] = finalQty; else delete state.cart[p.id]; 
-        updateGlobalState(); 
-        bootstrap.Modal.getInstance(document.getElementById('productModal')).hide(); 
+        const qty = (parseInt(document.getElementById('qtyInput').value)||0) * (document.getElementById('modeBox').checked ? state.currentBoxSize : 1);
+        if(qty>0) state.cart[p.id]=qty; else delete state.cart[p.id];
+        updateGlobalState(); bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
     }
-    
-    function showLevelUpToast(percent) { 
-        const toast = document.createElement('div'); toast.className = 'level-up-toast'; 
-        toast.innerHTML = `<i class="bi bi-stars"></i> Новый уровень! Скидка ${percent}%`; 
-        document.getElementById('toastContainer').appendChild(toast); 
-        void toast.offsetWidth; toast.classList.add('visible'); 
-        setTimeout(() => { toast.classList.remove('visible'); setTimeout(() => toast.remove(), 500); }, 3000); 
-    }
-    
+
     function updateGlobalState() {
-        const count = Object.keys(state.cart).length; 
-        Object.keys(state.cart).forEach(id => { const badge = document.getElementById(`badge-${id}`); if(badge) { badge.textContent = state.cart[id]; badge.style.display = state.cart[id] > 0 ? 'flex' : 'none'; } });
+        let sum = 0; Object.keys(state.cart).forEach(k => { const p=state.db.find(x=>x.id===k); if(p) sum+=p.pd*state.cart[k]; });
+        document.getElementById('footerBaseSum').innerText = sum.toLocaleString();
         
-        let baseTotal = 0; 
-        Object.keys(state.cart).forEach(id => { const p = state.db.find(x => x.id === id); if(p) baseTotal += getRawPrice(p) * state.cart[id]; });
-        
-        const res = DiscountSystem.calculate(baseTotal, false); 
-        document.getElementById('footerBaseSum').textContent = baseTotal.toLocaleString() + ' сум'; 
-        document.getElementById('footerBenefit').textContent = Math.round(res.totalBenefit).toLocaleString() + ' сум';
-        
-        const footerFill = document.getElementById('footerFill'); 
-        const gameText = document.getElementById('footerGameText'); 
-        const rangeInfo = DiscountSystem.getRangeInfo(baseTotal);
-        
-        if (res.tierPct > lastTierPct && lastTierPct >= 0) showLevelUpToast(res.tierPct); 
-        lastTierPct = res.tierPct;
-
-        if (baseTotal > 0) { 
-            if (!rangeInfo.hasTiers) {
-                footerFill.style.width = '100%'; 
-                gameText.innerHTML = `Персональная цена активна`; 
-            } else if (rangeInfo.isMax) { 
-                footerFill.style.width = '100%'; 
-                gameText.innerHTML = `Максимальная скидка ${res.tierPct}% получена!`; 
-            } else { 
-                const tierRange = rangeInfo.nextLimit - rangeInfo.prevLimit; 
-                const progressInTier = baseTotal - rangeInfo.prevLimit; 
-                let fillPct = (progressInTier / tierRange) * 100; 
-                if(fillPct < 5) fillPct = 5; if(fillPct > 100) fillPct = 100; 
-                footerFill.style.width = fillPct + '%'; 
-                const needed = (rangeInfo.nextLimit - baseTotal) / 1000000; 
-                gameText.innerHTML = `Ещё ${needed.toFixed(1)} млн до скидки ${rangeInfo.nextPct}%`; 
-            } 
-        } else { 
-            footerFill.style.width = '0%'; 
-            gameText.innerHTML = 'Сделайте заказ'; 
-        }
-
-        const badge = document.getElementById('cartCountBadge'); 
-        if(count > 0) { badge.textContent = count; badge.style.display = 'inline-block'; } else badge.style.display = 'none'; 
+        const count = Object.keys(state.cart).length;
+        document.getElementById('cartCountBadge').innerText = count;
+        document.getElementById('cartCountBadge').style.display = count?'inline-block':'none';
         updateCartFunnel();
     }
+
+    function selectDelivery(m) {
+        state.deliveryMethod = m;
+        document.getElementById('optStandard').classList.remove('selected'); document.getElementById('optStandard').querySelector('.bi').className='bi bi-circle text-muted fs-5';
+        document.getElementById('optExpress').classList.remove('selected'); document.getElementById('optExpress').querySelector('.bi').className='bi bi-circle text-muted fs-5';
+        if(m==='standard') { document.getElementById('optStandard').classList.add('selected'); document.getElementById('optStandard').querySelector('.bi').className='bi bi-check-circle-fill text-primary fs-5'; }
+        else { document.getElementById('optExpress').classList.add('selected'); document.getElementById('optExpress').querySelector('.bi').className='bi bi-check-circle-fill text-primary fs-5'; }
+    }
     
-    function updateCartItemQty(id, delta) { if(!state.cart[id]) return; state.cart[id] += delta; if(state.cart[id] <= 0) delete state.cart[id]; updateGlobalState(); }
-    
-    function updateCartFunnel() {
-        const list = document.getElementById('cartItemsList'); 
-        const funnel = document.getElementById('cartFunnel'); 
-        const empty = document.getElementById('cartEmptyMsg');
-        const logistics = document.getElementById('logisticsBlock');
-        const ids = Object.keys(state.cart);
-        
-        if(!ids.length) { 
-            list.innerHTML = ''; empty.classList.remove('d-none'); 
-            funnel.classList.add('d-none'); logistics.classList.add('d-none'); 
-            return; 
-        }
-        
-        empty.classList.add('d-none'); funnel.classList.remove('d-none'); logistics.classList.remove('d-none');
-        list.innerHTML = ''; 
-        
-        let retailTotal = 0; let baseDealerTotal = 0; 
-        ids.forEach((id, idx) => { 
-            const p = state.db.find(x => x.id === id); 
-            const qty = state.cart[id]; 
-            const price = getRawPrice(p); 
-            let retail = p.pp > 0 ? p.pp : Math.round(price / 0.85); 
-            retailTotal += retail * qty; 
-            baseDealerTotal += price * qty; 
-            
-            const div = document.createElement('div'); 
-            div.className = 'cart-item'; 
-            div.innerHTML = `
-                <div class="fw-bold small mb-1">${idx+1}. ${p.nm}</div>
-                <div class="d-flex justify-content-between align-items-center">
-                    <div class="d-flex bg-light rounded p-1">
-                        <button class="btn btn-sm px-2" onclick="updateCartItemQty('${id}', -1)">-</button>
-                        <div class="px-2 fw-bold align-self-center">${qty}</div>
-                        <button class="btn btn-sm px-2" onclick="updateCartItemQty('${id}', 1)">+</button>
-                    </div>
-                    <div class="text-end">
-                        <div class="fw-bold">${(price*qty).toLocaleString()}</div>
-                        <div class="small text-muted" style="font-size:0.7rem">${price.toLocaleString()}/шт</div>
-                    </div>
-                </div>`;
-            list.appendChild(div); 
-        });
-        
-        const isPrepay = document.getElementById('cartPrepayCheck').checked; 
-        const res = DiscountSystem.calculate(baseDealerTotal, isPrepay);
-        
-        document.getElementById('funnelRetail').innerText = Math.round(retailTotal).toLocaleString(); 
-        document.getElementById('funnelBase').innerText = Math.round(baseDealerTotal).toLocaleString(); 
-        
-        // Hide/Show Volume Discount
-        const rangeInfo = DiscountSystem.getRangeInfo(baseDealerTotal);
-        if (rangeInfo.hasTiers) {
-            document.getElementById('funnelRowVol').classList.remove('d-none');
-            document.getElementById('funnelVol').innerText = Math.round(res.sumAfterTier).toLocaleString(); 
-            document.getElementById('chipVolPct').innerText = `-${res.tierPct}%`; 
-        } else {
-            document.getElementById('funnelRowVol').classList.add('d-none');
-        }
-        
-        document.getElementById('funnelFinal').innerText = Math.round(res.finalSum).toLocaleString() + ' сум';
+    function toggleDropshipFields() {
+        document.getElementById('dropshipFields').classList.toggle('d-none', !document.getElementById('switchDropship').checked);
     }
 
-    // --- ORDER SUBMIT ---
+    function updateCartFunnel() {
+        const list = document.getElementById('cartItemsList'); list.innerHTML='';
+        const ids = Object.keys(state.cart);
+        const logistics = document.getElementById('logisticsBlock');
+        const funnel = document.getElementById('cartFunnel');
+        const empty = document.getElementById('cartEmptyMsg');
+
+        if(!ids.length) { empty.classList.remove('d-none'); logistics.classList.add('d-none'); funnel.classList.add('d-none'); return; }
+        
+        empty.classList.add('d-none'); logistics.classList.remove('d-none'); funnel.classList.remove('d-none');
+        
+        let sum = 0;
+        ids.forEach((id, i) => {
+            const p = state.db.find(x=>x.id===id); const q = state.cart[id]; const tot = p.pd*q; sum+=tot;
+            list.innerHTML += `<div class="cart-item"><div class="fw-bold small">${i+1}. ${p.nm}</div><div class="d-flex justify-content-between"><div>${q} шт x ${p.pd}</div><div class="fw-bold">${tot.toLocaleString()}</div></div></div>`;
+        });
+
+        const prof = DISCOUNT_PROFILES[state.clientType] || DISCOUNT_PROFILES['new_partner'];
+        let tierPct = 0; 
+        if(prof.tiers[0] !== 0) {
+            const m = sum/1000000;
+            for(let i=0; i<prof.tiers.length; i++) { if(m>=prof.tiers[i]) tierPct=prof.percents[i]; else break; }
+        }
+        const afterTier = sum - (sum*tierPct/100);
+        const prepay = document.getElementById('cartPrepayCheck').checked;
+        const final = afterTier - (afterTier * (prepay?0.02:0));
+
+        document.getElementById('funnelBase').innerText = sum.toLocaleString();
+        document.getElementById('funnelDiscount').innerText = `-${tierPct}%`;
+        document.getElementById('funnelFinal').innerText = Math.round(final).toLocaleString() + ' сум';
+    }
+
     function submitOrder() {
         if(!Object.keys(state.cart).length) return;
-        
-        // Dropship Validation
-        const isDropship = document.getElementById('switchDropship').checked;
-        let recipientInfo = null;
-        if (isDropship) {
-            const name = document.getElementById('dsName').value.trim();
-            const phone = document.getElementById('dsPhone').value.trim();
-            const address = document.getElementById('dsAddress').value.trim();
-            if (!name || !phone || !address) { alert("Заполните данные получателя для дропшиппинга!"); return; }
-            recipientInfo = { name, phone, address };
+        const isDrop = document.getElementById('switchDropship').checked;
+        let rcp = null;
+        if(isDrop) {
+            const n=document.getElementById('dsName').value, p=document.getElementById('dsPhone').value, a=document.getElementById('dsAddress').value;
+            if(!n||!p||!a) { alert("Заполните получателя!"); return; }
+            rcp = {name:n, phone:p, address:a};
         }
 
-        let baseDealerTotal = 0; 
-        const orderItems = [];
-        Object.keys(state.cart).forEach(id => {
-            const p = state.db.find(x => x.id === id);
-            const price = getRawPrice(p);
-            const total = price * state.cart[id];
-            baseDealerTotal += total;
-            orderItems.push({ product_id: p.id, name: p.nm, qty: state.cart[id], price_per_unit: price, total: total });
+        let base = 0; const items = [];
+        Object.keys(state.cart).forEach(k => {
+            const p = state.db.find(x=>x.id===k);
+            base += p.pd*state.cart[k];
+            items.push({ product_id:k, name:p.nm, qty:state.cart[k], price_per_unit:p.pd, total:p.pd*state.cart[k] });
         });
-        
-        const isPrepay = document.getElementById('cartPrepayCheck').checked;
-        const res = DiscountSystem.calculate(baseDealerTotal, isPrepay);
-        
-        const orderData = { 
-            userId: state.userId, 
-            clientType: state.clientType, 
-            items: orderItems, 
-            total_base: baseDealerTotal, 
-            total_final: Math.round(res.finalSum), 
-            discount_tier_pct: res.tierPct, 
-            discount_pay_pct: res.payPct, 
-            is_prepay: isPrepay,
-            // LOGISTICS FIELDS
-            delivery_type: isDropship ? 'dropshipping' : 'standard', // 'standard' means dealer receives it
-            shipping_method: state.deliveryMethod, // 'standard' (truck) or 'express' (taxi)
-            recipient_info: recipientInfo
-        };
-        
-        try { tg.sendData(JSON.stringify(orderData)); } 
-        catch (e) { alert("Заказ сформирован (Тест). Откройте через телеграм!"); }
-    }
 
-    // --- CALC ---
-    function initCalculator() { 
-        const slider = document.getElementById('calcAmountSlider'); 
-        const check = document.getElementById('calcPrepayCheck'); 
-        if(!slider) return;
-        slider.oninput = () => runSim(slider.value, check.checked); 
-        check.onchange = () => runSim(slider.value, check.checked); 
-        runSim(50, true); 
+        const prepay = document.getElementById('cartPrepayCheck').checked;
+        
+        // RECALC FINAL
+        const prof = DISCOUNT_PROFILES[state.clientType] || DISCOUNT_PROFILES['new_partner'];
+        let tierPct = 0; 
+        if(prof.tiers[0] !== 0) {
+            const m = base/1000000;
+            for(let i=0; i<prof.tiers.length; i++) { if(m>=prof.tiers[i]) tierPct=prof.percents[i]; else break; }
+        }
+        const final = (base - (base*tierPct/100)) * (prepay?0.98:1);
+
+        const data = {
+            userId: state.userId, clientType: state.clientType,
+            items: items, total_base: base, total_final: Math.round(final),
+            discount_tier_pct: tierPct, discount_pay_pct: prepay?2:0,
+            is_prepay: prepay,
+            delivery_type: isDrop ? 'dropshipping' : 'standard',
+            shipping_method: state.deliveryMethod,
+            recipient_info: rcp
+        };
+        try { tg.sendData(JSON.stringify(data)); } catch(e) { alert("Sent!"); }
     }
-    function runSim(val, prepay) { 
-        const millions = parseFloat(val); 
-        const sum = millions * 1000000; 
-        const res = DiscountSystem.calculate(sum, prepay); 
-        const saved = sum - res.finalSum; 
-        document.getElementById('calcAmountDisplay').textContent = millions + ' млн'; 
-        document.getElementById('calcTotalBenefit').textContent = (saved/1000000).toFixed(2) + ' млн'; 
-        document.getElementById('calcFinalPrice').textContent = (res.finalSum/1000000).toFixed(2) + ' млн'; 
-    }
-    function openCalculator() { new bootstrap.Modal(document.getElementById('calcModal')).show(); }
-    function resetFilters() { document.getElementById('searchInput').value = ''; setMode('deli'); }
 </script>
 </body>
 </html>

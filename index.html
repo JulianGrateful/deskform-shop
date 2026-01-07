@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>Deskform App | v6.4 No Dropship</title>
+    <title>Deskform App | v6.5 UI Update</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
@@ -27,21 +27,22 @@
         .header-wrapper { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: var(--header-blur); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(0,0,0,0.05); transition: transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1); will-change: transform; }
         .header-wrapper.hidden { transform: translateY(-100%); }
         .navbar { padding: 8px 0; }
-        .navbar-brand { font-weight: 800; color: var(--text-main) !important; font-size: 1.1rem; line-height: 1; cursor: pointer; }
-        .brand-chip { background: rgba(255, 204, 0, 0.15); color: #9A7B0C; border: 1px solid rgba(255, 204, 0, 0.2); font-size: 0.65rem; padding: 2px 8px; border-radius: 6px; font-weight: 700; align-self: flex-start; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+        .navbar-brand { font-weight: 800; color: var(--text-main) !important; font-size: 1.0rem; line-height: 1.2; cursor: pointer; }
+        .brand-col { display: flex; flex-direction: column; align-items: flex-start; }
+        .brand-chip { background: rgba(255, 204, 0, 0.15); color: #9A7B0C; border: 1px solid rgba(255, 204, 0, 0.2); font-size: 0.65rem; padding: 2px 8px; border-radius: 6px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
 
         /* SCROLLS */
-        .cat-scroll-container { display: flex; flex-direction: column; gap: 8px; padding-bottom: 8px; }
+        .cat-scroll-container { display: flex; flex-direction: column; gap: 8px; padding-bottom: 8px; margin-top: 10px; }
         .scroll-row { overflow-x: auto; white-space: nowrap; padding: 0 4px; -ms-overflow-style: none; scrollbar-width: none; display: flex; gap: 8px; cursor: grab; opacity: 0; transform: translateY(-10px); height: 0; pointer-events: none; margin-bottom: 0; transition: all 0.25s ease-out; user-select: none; }
         .scroll-row:active { cursor: grabbing; }
         .scroll-row::-webkit-scrollbar { display: none; }
-        #rowMode { opacity: 1; transform: translateY(0); height: auto; pointer-events: auto; }
+        #rowMode { opacity: 1; transform: translateY(0); height: auto; pointer-events: auto; flex-grow: 1; }
         .scroll-row.visible { opacity: 1; transform: translateY(0); height: auto; pointer-events: auto; }
         .cnt { font-size: 0.75em; opacity: 0.6; margin-left: 4px; font-weight: 400; }
         .active .cnt { opacity: 0.9; color: white; }
 
         /* CHIPS */
-        .pill-mode { padding: 10px 20px; background: #fff; color: var(--text-main); border-radius: 24px; font-size: 1rem; font-weight: 800; border: 1px solid rgba(0,0,0,0.1); box-shadow: 0 4px 10px rgba(0,0,0,0.04); transition: all 0.2s; cursor: pointer; display: flex; align-items: center; }
+        .pill-mode { padding: 8px 16px; background: #fff; color: var(--text-main); border-radius: 24px; font-size: 0.95rem; font-weight: 800; border: 1px solid rgba(0,0,0,0.1); box-shadow: 0 4px 10px rgba(0,0,0,0.04); transition: all 0.2s; cursor: pointer; display: flex; align-items: center; }
         .pill-mode.active { background: #111827; color: white; border-color: #111827; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
         .pill-l1 { padding: 8px 16px; background: #fff; color: var(--text-main); border-radius: 20px; font-size: 0.9rem; font-weight: 700; border: 1px solid rgba(0,0,0,0.08); box-shadow: 0 2px 6px rgba(0,0,0,0.03); transition: all 0.2s; cursor: pointer; display: flex; align-items: center; }
         .pill-l1.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 10px rgba(0,122,255,0.3); }
@@ -50,9 +51,15 @@
         .pill-l3 { padding: 5px 12px; background: #F3F4F6; color: var(--text-sec); border-radius: 12px; font-size: 0.75rem; font-weight: 500; border: 1px solid rgba(0,0,0,0.05); transition: all 0.2s; cursor: pointer; display: flex; align-items: center; }
         .pill-l3.active { background: var(--accent-green); color: white; border-color: var(--accent-green); }
 
-        .search-input-group { border-radius: 12px; background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.05); }
-        .search-input-group input { border: none; font-size: 16px; padding: 12px; }
-        .container-main { padding-top: 260px; transition: padding-top 0.3s ease-out; }
+        /* COMPACT SEARCH */
+        .mode-row-wrapper { display: flex; align-items: center; justify-content: space-between; position: relative; width: 100%; }
+        .search-trigger { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: white; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.05); color: var(--text-main); cursor: pointer; border: 1px solid rgba(0,0,0,0.05); margin-left: 8px; flex-shrink: 0; }
+        .search-overlay { position: absolute; top: 0; right: 0; bottom: 0; background: #fff; z-index: 20; display: flex; align-items: center; width: 0; overflow: hidden; transition: width 0.3s cubic-bezier(0.165, 0.84, 0.44, 1); border-radius: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.05); }
+        .search-overlay.open { width: 100%; }
+        .search-input-internal { border: none; width: 100%; height: 100%; padding-left: 16px; outline: none; background: transparent; font-size: 16px; }
+        .search-close-btn { width: 40px; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-sec); cursor: pointer; }
+
+        .container-main { padding-top: 180px; transition: padding-top 0.3s ease-out; }
 
         /* CARDS */
         .product-card { background: var(--card-bg); border: none; border-radius: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); height: 100%; display: flex; flex-direction: column; overflow: hidden; cursor: pointer; position: relative; transition: transform 0.1s; }
@@ -160,28 +167,30 @@
     <div class="container">
         <nav class="navbar d-flex align-items-center justify-content-between">
             <div class="brand-col">
-                <span class="navbar-brand">Deskform Dealer</span>
+                <span class="navbar-brand mb-0">Бегзод Машарипов | Deskform</span>
                 <span class="brand-chip" id="userStatusChip">Статус: Загрузка...</span>
             </div>
             <div class="d-flex align-items-center gap-2">
                 <button class="btn btn-sm btn-primary rounded-pill px-3" id="btnCalc" onclick="openCalculator()">
                     <i class="bi bi-calculator"></i>
                 </button>
-                <button class="btn btn-sm btn-light rounded-pill px-3" onclick="resetFilters()">Сброс</button>
             </div>
         </nav>
 
         <div class="search-container-inner">
             <div class="row g-2">
                 <div class="col-12">
-                    <div class="input-group search-input-group">
-                        <span class="input-group-text"><i class="bi bi-search"></i></span>
-                        <input type="text" id="searchInput" class="form-control" placeholder="Поиск товаров...">
-                    </div>
-                </div>
-                <div class="col-12">
                      <div class="cat-scroll-container">
-                         <div id="rowMode" class="scroll-row"></div>
+                         <div class="mode-row-wrapper">
+                             <div id="expandedSearch" class="search-overlay">
+                                 <input type="text" id="searchInput" class="search-input-internal" placeholder="Поиск по всему каталогу...">
+                                 <div class="search-close-btn" onclick="closeSearch()"><i class="bi bi-x-lg"></i></div>
+                             </div>
+                             <div id="rowMode" class="scroll-row"></div>
+                             <div class="search-trigger" onclick="openSearch()">
+                                 <i class="bi bi-search"></i>
+                             </div>
+                         </div>
                          <div id="rowL2" class="scroll-row"></div>
                          <div id="rowL3" class="scroll-row"></div>
                          <div id="rowL4" class="scroll-row"></div>
@@ -346,17 +355,24 @@
         }
         
         document.getElementById('userStatusChip').textContent = `Статус: ${state.currentProfile.name}`;
-        if (state.clientType !== 'new_partner') {
-            const btnCalc = document.getElementById('btnCalc');
-            if (btnCalc) btnCalc.style.display = 'none';
-        }
+    }
+
+    // --- SEARCH UI TOGGLE ---
+    function openSearch() {
+        document.getElementById('expandedSearch').classList.add('open');
+        document.getElementById('searchInput').focus();
+    }
+
+    function closeSearch() {
+        document.getElementById('expandedSearch').classList.remove('open');
+        document.getElementById('searchInput').value = '';
+        filterData(); // Reset filters
     }
 
     // --- SKELETON RENDER ---
     function renderSkeleton() {
         const grid = document.getElementById('skeletonGrid');
         grid.innerHTML = '';
-        // Генерируем 8 пустых мерцающих карточек
         for(let i=0; i<8; i++) {
             const el = document.createElement('div'); el.className = 'col';
             el.innerHTML = `
@@ -387,7 +403,6 @@
 
             const contentLength = response.headers.get('content-length');
             if (!contentLength) {
-                // Если нет заголовка размера (например, gzip), просто качаем без процентов
                 loaderText.textContent = `${statusPrefix} (Загрузка...)`;
                 const blob = await response.blob();
                 return blob.arrayBuffer();
@@ -404,13 +419,11 @@
                 if (done) break;
                 chunks.push(value);
                 loaded += value.length;
-                
                 const percent = Math.round((loaded / total) * 100);
                 loaderBar.style.width = `${percent}%`;
                 loaderText.textContent = `${statusPrefix} ${percent}%`;
             }
 
-            // Combine chunks
             const blob = new Blob(chunks);
             return blob.arrayBuffer();
 
@@ -423,14 +436,12 @@
     async function initDataLoading() {
         document.getElementById('footerGameText').innerText = "Подключение...";
         try {
-            // 1. Reference
             const refBuffer = await fetchWithProgress(FILE_REF, "Справочник");
             const refWb = XLSX.read(refBuffer, {type:'array'});
             processReference(refWb);
             
-            // 2. Database
             const dbBuffer = await fetchWithProgress(FILE_DB, "База товаров");
-            document.getElementById('realLoader').style.display = 'none'; // Скрываем лоадер
+            document.getElementById('realLoader').style.display = 'none'; 
             
             const dbWb = XLSX.read(dbBuffer, {type:'array'});
             processDatabase(dbWb);
@@ -511,7 +522,6 @@
             state.activeCat2 = 'Степлеры, антистеплеры, скобы';
             state.activeSub = 'all';
 
-            // Убираем скелетон и показываем сетку
             document.getElementById('skeletonGrid').classList.add('d-none');
             document.getElementById('productsGrid').classList.remove('d-none');
             
@@ -587,6 +597,17 @@
 
     function renderLevel2() {
         const container = document.getElementById('rowL2'); container.innerHTML = ''; container.classList.add('visible');
+        
+        // 1. ADD 'ALL' CHIP
+        const allPill = document.createElement('div');
+        allPill.className = `pill-l1 ${state.activeCat1 === 'all' && state.activeBrand === 'all' ? 'active' : ''}`;
+        allPill.innerHTML = `Все`;
+        allPill.onclick = () => {
+             state.activeCat1 = 'all'; state.activeCat2 = 'all'; state.activeSub = 'all'; state.activeBrand = 'all';
+             renderLevel2(); filterData(); window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+        container.appendChild(allPill);
+
         if (state.mode === 'deli') {
             const cats = {}; state.db.filter(p => p.br === 'Deli').forEach(p => { const c = p.c1 || 'Другое'; if (c !== 'Другое') cats[c] = (cats[c] || 0) + 1; });
             let sorted = Object.keys(cats).sort(); sorted = [...PRIORITY_CATS.filter(x => sorted.includes(x)), ...sorted.filter(x => !PRIORITY_CATS.includes(x))];
@@ -630,6 +651,10 @@
         let list = state.db.filter(p => {
             const matchesSearch = !q || p.nm.toLowerCase().includes(q) || p.id.toLowerCase().includes(q);
             if (!matchesSearch) return false;
+            
+            // Если есть поиск - игнорируем фильтры категорий (ищем по всей базе)
+            if (q.length > 0) return true;
+
             if (state.mode === 'deli') {
                 if (p.br !== 'Deli') return false; 
                 if (state.activeCat1 !== 'all' && p.c1 !== state.activeCat1) return false;
@@ -872,7 +897,7 @@
             discount_pay_pct: res.payPct, 
             is_promo: isPromo, 
             is_prepay: isPrepay,
-            delivery_type: 'standard', // Стандарт по умолчанию
+            delivery_type: 'standard', 
             shipping_method: state.deliveryMethod,
             recipient_info: null
         };
@@ -883,7 +908,6 @@
     function initCalculator() { const slider = document.getElementById('calcAmountSlider'); const check = document.getElementById('calcPrepayCheck'); slider.oninput = () => runSim(slider.value, check.checked); check.onchange = () => runSim(slider.value, check.checked); runSim(50, true); }
     function runSim(val, prepay) { const millions = parseFloat(val); const sum = millions * 1000000; const res = DiscountSystem.calculate(sum, prepay, true); const totalPct = res.tierPct + res.payPct; const saved = sum - res.finalSum; document.getElementById('calcAmountDisplay').textContent = millions + ' млн'; document.getElementById('calcTotalBenefit').textContent = (saved/1000000).toFixed(2) + ' млн'; document.getElementById('calcTotalPercent').textContent = totalPct + '%'; document.getElementById('calcFinalPrice').textContent = (res.finalSum/1000000).toFixed(2) + ' млн'; document.getElementById('calcBaseLabel').innerText = res.tierPct + '%'; const baseWidth = (res.tierPct / 11) * 100; document.getElementById('calcBaseBar').style.width = baseWidth + '%'; const prepayRow = document.getElementById('calcPrepayRow'); const prepayBar = document.getElementById('calcPrepayBar'); if (prepay) { prepayRow.style.opacity = '1'; prepayBar.style.width = '100%'; } else { prepayRow.style.opacity = '0.4'; prepayBar.style.width = '0%'; } }
     function openCalculator() { new bootstrap.Modal(document.getElementById('calcModal')).show(); }
-    function resetFilters() { document.getElementById('searchInput').value = ''; setMode('deli'); }
 </script>
 </body>
 </html>

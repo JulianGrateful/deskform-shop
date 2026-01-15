@@ -3,7 +3,7 @@ import os
 import json
 import logging
 from datetime import datetime
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from pymongo import MongoClient
 from bson.objectid import ObjectId
@@ -27,7 +27,8 @@ MONGO_URL = os.getenv("MONGO_URL")
 DB_NAME = "deskform_db"
 
 # --- Инициализация Flask и CORS ---
-app = Flask(__name__)
+# Указываем static_folder, чтобы Flask знал, где искать файлы типа img, css и т.д.
+app = Flask(__name__, static_folder='.', static_url_path='')
 CORS(app) # Разрешаем кросс-доменные запросы для фронтенда
 
 # --- Инициализация Базы Данных ---
@@ -59,7 +60,12 @@ def format_currency(value):
 # ==========================================
 
 @app.route('/')
-def index():
+def serve_index():
+    """Отдает главный файл фронтенда."""
+    return send_from_directory('.', 'index.html')
+
+@app.route('/status')
+def status():
     return "Deskform API Server is running.", 200
 
 @app.route('/calculate', methods=['POST'])
@@ -88,14 +94,19 @@ def submit_order():
     """
     Основной эндпоинт для сохранения заказа в базу данных.
     """
-    if not db:
+    if db is None:
         return jsonify({"error": "Подключение к базе данных отсутствует"}), 500
         
     raw_data = request.json
+    logging.info(f"Получены сырые данные для заказа: {raw_data}")
     
     try:
         # 1. Валидация и структурирование данных через дата-класс
         order_items = [OrderItem(**item) for item in raw_data.pop('items', [])]
+        
+        # ВАЖНО: Удаляем ключ, который приходит от фронтенда, но отсутствует в модели
+        raw_data.pop('recipient_info', None)
+        
         order_model = WebAppOrderData(items=order_items, **raw_data)
 
         # 2. Конвертация в словарь для MongoDB и обогащение
@@ -131,8 +142,10 @@ def submit_order():
         }), 201
 
     except TypeError as e:
+        logging.error(f"TypeError при обработке заказа: {e}", exc_info=True)
         return jsonify({"error": "Ошибка в структуре данных", "details": str(e)}), 400
     except Exception as e:
+        logging.error(f"Exception при обработке заказа: {e}", exc_info=True)
         return jsonify({"error": "Внутренняя ошибка сервера", "details": str(e)}), 500
 
 
@@ -141,4 +154,4 @@ def submit_order():
 # ==========================================
 if __name__ == '__main__':
     # Используйте host='0.0.0.0' чтобы сделать сервер доступным в локальной сети
-    app.run(host='127.0.0.1', port=5001, debug=True)
+    app.run(host='0.0.0.0', port=5001, debug=True)

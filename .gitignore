@@ -1,0 +1,7 @@
+.env
+img/
+__pycache__/
+venv/
+.git/
+.vscode/
+*.log

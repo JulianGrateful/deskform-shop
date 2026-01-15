@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>Deskform App | v6.7 Compact UI</title>
+    <title>Deskform App | v6.8 Smart UX</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
@@ -58,7 +58,7 @@
             transform-origin: top;
         }
         .filter-wrapper.open {
-            max-height: 300px; /* Достаточно для 3 рядов */
+            max-height: 300px; 
             opacity: 1;
             margin-top: 6px;
         }
@@ -72,8 +72,6 @@
         .active .cnt { opacity: 0.9; color: white; }
 
         /* CHIPS STYLES (COMPACT & GRADIENT) */
-        
-        /* 1. Mode Chips (Deli / Deskform) - Gradient Gray */
         .pill-mode { 
             padding: 6px 14px; 
             background: linear-gradient(180deg, #F9FAFB 0%, #F3F4F6 100%);
@@ -94,7 +92,6 @@
             box-shadow: 0 2px 6px rgba(0,0,0,0.2); 
         }
 
-        /* 2. Category Chips (Level 1) - Compact Gray */
         .pill-l1 { 
             padding: 5px 12px; 
             background: #F3F4F6; 
@@ -114,7 +111,6 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
         }
 
-        /* 3. Sub-Category Chips (Level 2/3) - Same compact style */
         .pill-l2, .pill-l3 { 
             padding: 5px 12px; 
             background: #F3F4F6; 
@@ -145,7 +141,15 @@
         }
         .search-overlay { position: absolute; top: 0; right: 0; bottom: 0; background: #fff; z-index: 20; display: flex; align-items: center; width: 0; overflow: hidden; transition: width 0.3s cubic-bezier(0.165, 0.84, 0.44, 1); border-radius: 18px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.05); }
         .search-overlay.open { width: 100%; }
+        
+        /* Updated Input Style for Smart Search */
         .search-input-internal { border: none; width: 100%; height: 100%; padding-left: 16px; outline: none; background: transparent; font-size: 14px; }
+        /* Hide default webkit search cancel button to avoid double UI */
+        input[type="search"]::-webkit-search-decoration,
+        input[type="search"]::-webkit-search-cancel-button,
+        input[type="search"]::-webkit-search-results-button,
+        input[type="search"]::-webkit-search-results-decoration { display: none; }
+
         .search-close-btn { width: 40px; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-sec); cursor: pointer; }
 
         .container-main { padding-top: 130px; transition: padding-top 0.3s ease-out; }
@@ -280,7 +284,7 @@
                          
                          <div class="mode-row-wrapper">
                              <div id="expandedSearch" class="search-overlay">
-                                 <input type="text" id="searchInput" class="search-input-internal" placeholder="Поиск по всему каталогу...">
+                                 <input type="search" id="searchInput" class="search-input-internal" placeholder="Поиск по всему каталогу..." enterkeyhint="search">
                                  <div class="search-close-btn" onclick="closeSearch()"><i class="bi bi-x-lg"></i></div>
                              </div>
                              <div id="rowMode" class="scroll-row"></div>
@@ -434,8 +438,25 @@
                 let st = window.pageYOffset || document.documentElement.scrollTop;
                 if (st > lastScrollTop && st > 100) { header.classList.add('hidden'); footer.classList.remove('hidden'); } else if (st < lastScrollTop) { header.classList.remove('hidden'); footer.classList.add('hidden'); } lastScrollTop = st <= 0 ? 0 : st;
             });
+            
+            // UX: Hide keyboard on scroll
+            if (document.activeElement === document.getElementById('searchInput')) {
+                document.getElementById('searchInput').blur();
+            }
         });
-        document.getElementById('searchInput').addEventListener('input', e => { setTimeout(() => filterData(), 300); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+        
+        // UX: Search Input Event Listeners
+        const sInput = document.getElementById('searchInput');
+        sInput.addEventListener('input', e => { setTimeout(() => filterData(), 300); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+        
+        // UX: Hide keyboard on "Enter" / "Search" key press
+        sInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                sInput.blur();
+            }
+        });
+
         const sentinel = document.getElementById('scrollSentinel');
         new IntersectionObserver(entries => { if(entries[0].isIntersecting && state.loaded < state.filtered.length) renderBatch(); }, { rootMargin: '400px' }).observe(sentinel);
         initCalculator();
@@ -494,7 +515,9 @@
 
     function closeSearch() {
         document.getElementById('expandedSearch').classList.remove('open');
-        document.getElementById('searchInput').value = '';
+        const sInput = document.getElementById('searchInput');
+        sInput.value = '';
+        sInput.blur(); // Ensure keyboard is hidden
         filterData(); // Reset filters
     }
 
